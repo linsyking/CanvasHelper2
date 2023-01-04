@@ -1,6 +1,6 @@
 # Project Specific
 canvas/
-user*.json
+user_conf.json
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

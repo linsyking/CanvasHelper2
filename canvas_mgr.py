@@ -1,8 +1,15 @@
+#!/usr/bin/env python3
 '''
 @Author: King
-@Date: 2022-03-24 19-30-43
+@Date: 2023-01-04 09:17:45
 @Email: linsy_king@sjtu.edu.cn
 @Url: https://yydbxx.cn
+'''
+
+'''
+Canvas Manager
+
+Contact with canvas.
 '''
 
 from datetime import datetime, timedelta
@@ -15,16 +22,18 @@ import os
 class CanvasMGR:
     g_out = ""
     g_tformat = "relative"
-    user_data = {}
     usercheck = []
     bid = ''
     ucommand = ''
     url = ''
 
-    def __init__(self, bid: str) -> None:
+    def __init__(self) -> None:
         if not os.path.exists('canvas'):
             os.mkdir('canvas')
-        self.bid = bid
+        
+        # Check whether config file exists
+        if not os.path.exists('./user_conf.json'):
+            raise Exception('No configuration file found')
 
         self.reset()
 
@@ -36,16 +45,14 @@ class CanvasMGR:
             self.ucommand = json.load(f)
 
         self.url = self.ucommand['url']
+        self.bid = self.ucommand['bid']
         if(self.url[-1] == '/'):
             self.url = self.url[:-1]
         if(self.url[:4] != 'http'):
             raise Exception("Invalid url")
 
-        if os.path.exists(f'./user_data.json'):
-            with open(f'./user_data.json', 'r', encoding='utf-8', errors='ignore') as f:
-                self.user_data = json.load(f)
-            if "checks" in self.user_data:
-                self.usercheck = self.user_data['checks']
+        if "checks" in self.ucommand:
+            self.usercheck = self.ucommand['checks']
 
         if "timeformat" in self.ucommand:
             self.g_tformat = self.ucommand['timeformat']
@@ -92,7 +99,7 @@ class CanvasMGR:
             try:
                 i.run()
             except Exception as e:
-                self.print_own(f"<h2>{i.cname} - Error</h2>\n{e}")
+                self.print_own(f"<h2>{i.cname} - Error</h2>\n{i.raw}")
 
         for i in allc:
             self.print_own(i.print_out())
@@ -315,3 +322,8 @@ class apilink:
             return self.output
         else:
             return f"<p>Warning: no output for course {self.cname} (id: {self.course})</p>"
+
+if __name__ == "__main__":
+    # TEST
+    cmgr = CanvasMGR()
+    print(cmgr.get_response())
