@@ -20,26 +20,26 @@ from fastapi.responses import JSONResponse
 from os import path
 import json
 
-app = FastAPI()
+app = FastAPI(version='0.1.0', title='Canvas Helper', description='Canvas Helper API.')
 conf = ConfigMGR()
 
 
-@app.get("/config")
+@app.get("/config", summary="Get the configuration file", description="Get the configuration file.", tags=["config"])
 async def get_configuration():
     return conf.get_conf()
 
-@app.get("/config/refresh")
+@app.get("/config/refresh",tags=["config"], summary="Refresh the configuration file", description="Force to read the configuration file from disk.")
 async def refresh_conf():
     conf.force_read()
     return JSONResponse(status_code=200, content={"message": "success"})
 
-@app.get("/config/{key}")
+@app.get("/config/{key}", tags=["config"], summary="Get a specific key from the configuration file", description="Get a specific key from the configuration file.")
 async def get_configuration(key: str):
     if key not in conf.get_conf():
         return JSONResponse(status_code=404, content={"message": "Key not found"})
     return conf.get_conf()[key]
 
-@app.put("/config/{key}")
+@app.put("/config/{key}", tags=["config"], summary="Update a specific key in the configuration file", description="Update a specific key in the configuration file.")
 async def update_configuration(key: str, request: Request):
     body = await request.body()
     try:
@@ -49,20 +49,20 @@ async def update_configuration(key: str, request: Request):
     conf.set_key_value(key, body_p["data"])
     return JSONResponse(status_code=200, content={"message": "success"})
 
-@app.delete("/config/{key}")
+@app.delete("/config/{key}", tags=["config"], summary="Delete a specific key in the configuration file", description="Delete a specific key in the configuration file.")
 async def delete_configuration(key: str):
     if key not in conf.get_conf():
         return JSONResponse(status_code=404, content={"message": "Key not found"})
     conf.remove_key(key)
     return JSONResponse(status_code=200, content={"message": "success"})
 
-@app.get("/courses")
+@app.get("/courses", tags=["course"], summary="Get all the courses", description="Get all the courses.")
 async def get_all_courses():
     if not "courses" in conf.get_conf():
         return JSONResponse(status_code=404, content={"message": "Courses not found"})
     return conf.get_conf()["courses"]
 
-@app.delete("/courses/{course_id}")
+@app.delete("/courses/{course_id}", tags=["course"], summary="Delete a course", description="Delete a course. It will delete all the course items with the given course id.")
 async def delete_course(course_id: int):
     if not "courses" in conf.get_conf():
         return JSONResponse(status_code=404, content={"message": "Courses not found"})
@@ -74,7 +74,7 @@ async def delete_course(course_id: int):
     conf.set_key_value("courses", all_courses)
     return JSONResponse(status_code=200, content={"message": "success"})
 
-@app.delete("/courses/{course_id}/{type}")
+@app.delete("/courses/{course_id}/{type}", tags=["course"], summary="Delete a course item", description="Delete a course item. It will delete the course item with the given course id and type.")
 async def delete_course(course_id: int, type: str):
     if not "courses" in conf.get_conf():
         return JSONResponse(status_code=404, content={"message": "Courses not found"})
@@ -86,7 +86,7 @@ async def delete_course(course_id: int, type: str):
     conf.set_key_value("courses", all_courses)
     return JSONResponse(status_code=200, content={"message": "success"})
 
-@app.post("/courses")
+@app.post("/courses", tags=["course"], summary="Add a course", description="Add a course.")
 async def create_course(course: Course):
     if course.type not in ['ann', 'dis', 'ass']:
         return JSONResponse(status_code=400, content={"message": "Invalid course type"})
@@ -109,7 +109,7 @@ async def create_course(course: Course):
     conf.set_key_value("courses", ori_courses)
     return JSONResponse(status_code=200, content={"message": "success"})
 
-@app.get("/canvas/dashboard")
+@app.get("/canvas/dashboard", tags=["canvas"], summary="Get the dashboard", description="Get the dashboard.")
 async def get_dashboard(cache: bool = False):
     if cache:
         # Use cache
@@ -123,7 +123,7 @@ async def get_dashboard(cache: bool = False):
     return {"data": canvas.get_response()}
 
 
-@app.post("/canvas/check")
+@app.post("/canvas/check", tags=["canvas"], summary="Check some task", description="Check some task.")
 async def set_check(check: Check):
     '''
     Check
@@ -142,7 +142,7 @@ async def set_check(check: Check):
     return JSONResponse(status_code=200, content={"message": "success"})
 
 
-@app.delete("/canvas/check")
+@app.delete("/canvas/check", tags=["canvas"], summary="Delete a check", description="Delete a check.")
 async def delete_check(check: Check):
     '''
     Delete check
@@ -160,7 +160,7 @@ async def delete_check(check: Check):
     return JSONResponse(status_code=200, content={"message": "success"})
 
 
-@app.get("/canvas/position")
+@app.get("/canvas/position", tags=["canvas"], summary="Get the position", description="Get the position.")
 async def get_position():
     '''
     Get position
@@ -170,7 +170,7 @@ async def get_position():
     return conf.get_conf()["position"]
 
 
-@app.put("/canvas/position")
+@app.put("/canvas/position", tags=["canvas"], summary="Set the position", description="Set the position.")
 async def update_position(position: Position):
     '''
     Set position
