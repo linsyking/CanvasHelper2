@@ -211,7 +211,7 @@ class apilink:
         self.add_custom_info()
 
     def add_custom_info(self):
-        if('msg' in self.other):
+        if('msg' in self.other and self.other['msg'] != ""):
             # Add custom message
             self.output += f'<p>{self.other["msg"]}</p>\n'
 
@@ -236,9 +236,11 @@ class apilink:
                         self.ass_data.append(k)
         self.ass_data.sort(key=self._cmp_ass, reverse=True)
         self.output = f'<h2>{self.cname}: Homework</h2>\n'
-        maxnum = 1000
+        maxnum = 10000
         if "maxshow" in self.other:
             maxnum = int(self.other['maxshow'])
+            if maxnum == -1:
+                maxnum = 10000
         if(len(self.ass_data) == 0 or maxnum <= 0):
             self.output += "None\n"
             return
@@ -274,9 +276,11 @@ class apilink:
         anr = json.loads(anr)
         self.ann_data = anr
         self.output = f'<h2>{self.cname}: Announcements</h2>\n'
-        maxnum = 4
+        maxnum = 10000
         if("maxshow" in self.other):
             maxnum = int(self.other['maxshow'])
+            if maxnum == -1:
+                maxnum = 10000
         if(len(anr) == 0 or maxnum <= 0):
             self.output += "None.\n"
             return
@@ -301,9 +305,12 @@ class apilink:
             if d['locked']:
                 continue
             self.dis_data.append(d)
-        maxnum = 5
+        maxnum = 10000
         if "maxshow" in self.other:
             maxnum = int(self.other['maxshow'])
+
+            if maxnum == -1:
+                maxnum = 10000
         if(len(self.dis_data) == 0 or maxnum <= 0):
             self.output += "None.\n"
             return

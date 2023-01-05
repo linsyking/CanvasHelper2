@@ -126,14 +126,11 @@ async def create_course(course: Course):
     course_info = {
             "course_id": course.id,
             "course_name": course.name,
-            "type": course.type
+            "type": course.type,
+            "maxshow": course.maxshow,
+            "order": course.order,
+            "msg": course.msg
     }
-    if course.maxshow:
-        course_info["maxshow"] = course.maxshow
-    if course.order:
-        course_info["order"] = course.order
-    if course.msg:
-        course_info["msg"] = course.msg
     if not "courses" in conf.get_conf():
         ori_courses = []
     else:
@@ -145,6 +142,11 @@ async def create_course(course: Course):
     ori_courses.append(course_info)
     conf.set_key_value("courses", ori_courses)
     return JSONResponse(status_code=200, content={"message": "success"})
+
+
+@app.put("/courses", tags=["course"], summary="Modify a course", description="Modify a course.")
+async def modify_course(index: int, course: Course):
+    return course
 
 @app.get("/canvas/dashboard", tags=["canvas"], summary="Get the dashboard", description="Get the dashboard.")
 async def get_dashboard(cache: bool = False):

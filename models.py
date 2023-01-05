@@ -25,6 +25,6 @@ class Course(BaseModel):
     id: int
     name: str
     type: str
-    maxshow: int | None = None
-    order: str | None = None
-    msg: str | None = None
+    maxshow: int = -1
+    order: str = "normal"
+    msg: str = ""
