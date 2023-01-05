@@ -166,26 +166,32 @@ function apilink(apipath) {
 function setupConfig() {
     // Set background images/video according to config
     if (!window.udata) {
-            $.get(apilink('/config'), function (data) {
-                window.udata = data;
-                try {
-                    window.udatap = JSON.parse(data);
-                } catch (e) {
-                    $("#b1").html("<b>user_data parse error</b>\n<p>" + e + "</p>");
-                    showerrer();
-                    return;
-                }
-                add_bg();
-                setpos();
-                setVideobg();
-                $("#b1").html("Updating...");
-                getcache();
-                window.isupdating = 1;
-                sendreq();
-            }, 'text').fail(function () {
-                $("#b1").html("Cannot contact with the server. Is the server running?");
+        // Verify
+        $.get(apilink('/config/verify')).fail(function () {
+            $("#b1").html("Cannot contact with the server. Is the server running?");
+            showerrer();
+        });
+
+        $.get(apilink('/config'), function (data) {
+            window.udata = data;
+            try {
+                window.udatap = JSON.parse(data);
+            } catch (e) {
+                $("#b1").html("<b>user_data parse error</b>\n<p>" + e + "</p>");
                 showerrer();
-            });
+                return;
+            }
+            add_bg();
+            setpos();
+            setVideobg();
+            $("#b1").html("Updating...");
+            getcache();
+            window.isupdating = 1;
+            sendreq();
+        }, 'text').fail(function () {
+            $("#b1").html("Cannot contact with the server. Is the server running?");
+            showerrer();
+        });
     }
     // One Right
     $("#c1").css("position", "absolute");
@@ -337,7 +343,7 @@ function sendpos() {
     let w = mydiv.offsetWidth;
     let h = mydiv.offsetHeight;
     // Send box position
-    const smsg = {"left": x, "top": y, "height": h, "width": w };
+    const smsg = { "left": x, "top": y, "height": h, "width": w };
     $.ajax(apilink('/canvas/position'), {
         data: JSON.stringify(smsg),
         contentType: 'application/json',
