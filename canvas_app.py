@@ -22,7 +22,7 @@ from fastapi.responses import JSONResponse
 from os import path
 import json
 app = FastAPI(
-    version='0.1.0', title='Canvas Helper', description='Canvas Helper API.')
+    version='1.0.0', title='Canvas Helper', description='Canvas Helper API.')
 
 app.add_middleware(
     CORSMiddleware,
