@@ -2,6 +2,7 @@
 canvas/
 user_conf.json
 *.webm
+*.jpg
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
