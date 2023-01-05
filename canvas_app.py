@@ -172,12 +172,12 @@ async def modify_course(index: int, course: Course):
         "order": course.order,
         "msg": course.msg
     }
-    courses[index] = course_info
     # Test if the course already exists
     for i in range(len(courses)):
         if i != index and courses[i]["course_id"] == course.id and courses[i]["type"] == course.type:
             return JSONResponse(status_code=400, content={"message": "Course already exists"})
 
+    courses[index] = course_info
     conf.set_key_value("courses", courses)
     return JSONResponse(status_code=200, content={"message": "success"})
 
