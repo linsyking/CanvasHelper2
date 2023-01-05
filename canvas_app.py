@@ -134,6 +134,8 @@ async def delete_course(course_id: int, type: str):
 async def create_course(course: Course):
     if course.type not in ['ann', 'dis', 'ass']:
         return JSONResponse(status_code=400, content={"message": "Invalid course type"})
+    if course.name == "":
+        return JSONResponse(status_code=400, content={"message": "Empty course name"})
     course_info = {
         "course_id": course.id,
         "course_name": course.name,
@@ -164,6 +166,8 @@ async def modify_course(index: int, course: Course):
         return JSONResponse(status_code=404, content={"message": "Course not found"})
     if course.type not in ['ann', 'ass', 'dis']:
         return JSONResponse(status_code=400, content={"message": "Invalid course type"})
+    if course.name == "":
+        return JSONResponse(status_code=400, content={"message": "Empty course name"})
     course_info = {
         "course_id": course.id,
         "course_name": course.name,
