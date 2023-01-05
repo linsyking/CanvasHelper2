@@ -100,6 +100,7 @@ function getcache() {
 
 function sendreq() {
     // Precheck
+    if(!window.udatap) return;
     if (window.udatap['bid'].length < 10) {
         // Obviously incorrect
         $("#b1").html("Please check your bid");
