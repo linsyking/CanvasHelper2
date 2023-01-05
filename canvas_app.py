@@ -138,6 +138,10 @@ async def create_course(course: Course):
         ori_courses = []
     else:
         ori_courses = conf.get_conf()["courses"]
+    # Check if the course already exists
+    for c in ori_courses:
+        if c["course_id"] == course.id and c["type"] == course.type:
+            return JSONResponse(status_code=400, content={"message": "Course already exists"})
     ori_courses.append(course_info)
     conf.set_key_value("courses", ori_courses)
     return JSONResponse(status_code=200, content={"message": "success"})
