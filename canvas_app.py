@@ -220,6 +220,7 @@ async def set_check(name: str, check: Check):
     conf.set_key_value("checks", all_checks)
     return JSONResponse(status_code=200, content={"message": "success"})
 
+
 @app.get("/canvas/position", tags=["canvas"], summary="Get the position", description="Get the position.")
 async def get_position():
     '''
