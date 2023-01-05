@@ -66,7 +66,7 @@ async def delete_configuration(key: str):
     conf.remove_key(key)
     return JSONResponse(status_code=200, content={"message": "success"})
 
-@app.get("/config/verify", tags=["config"])
+@app.get("/config/verify", tags=["config"], summary="Verify the configuration file", description="Verify the configuration file.")
 async def verify_config():
     '''
     Verify the configuration
