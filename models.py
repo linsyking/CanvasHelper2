@@ -10,16 +10,20 @@
 Models
 '''
 
-from pydantic import BaseModel, Field
 
+
+
+from pydantic import BaseModel, Field
 class Position(BaseModel):
     left: int = Field(..., description="Left position")
     top: int = Field(..., description="Top position")
     width: int = Field(..., description="Width")
     height: int = Field(..., description="Height")
 
+
 class Check(BaseModel):
     type: int | None = None
+
 
 class Course(BaseModel):
     id: int

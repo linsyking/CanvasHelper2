@@ -2,10 +2,10 @@
 
 New generation of Canvas Helper backend.
 
-## Usage
+## Run backend
 
 ```bash
-uvicorn canvas_app:app --host 0.0.0.0 --port 9283
+uvicorn canvas_app:app --port 9283
 ```
 
 For development, you'd probably need to use:
@@ -15,3 +15,13 @@ uvicorn canvas_app:app --reload
 ```
 
 to automatically reload the api when the script is modified.
+
+If you need to expose the port, you can add option `--host 0.0.0.0`.
+
+## Run host
+
+```bash
+python3 -m http.server 9282 --directory ./public/
+```
+
+Now go to page <http://localhost:9282> to see the result!

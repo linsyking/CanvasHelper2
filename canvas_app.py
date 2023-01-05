@@ -203,7 +203,7 @@ async def set_check(name: str, check: Check):
 
     Only 1,2,3 is available
     '''
-    if check.type == None or check.type <= 0 or check.type >= 4:
+    if check.type == None or check.type < 0 or check.type > 3:
         return JSONResponse(status_code=400, content={"message": "Invalid check type"})
     all_checks = [{"name": name, "type": check.type}]
     if "checks" in conf.get_conf():
@@ -213,25 +213,6 @@ async def set_check(name: str, check: Check):
                 all_checks.append(ori_check)
     conf.set_key_value("checks", all_checks)
     return JSONResponse(status_code=200, content={"message": "success"})
-
-
-@app.delete("/canvas/check/{name}", tags=["canvas"], summary="Delete a check", description="Delete a check.")
-async def delete_check(name: str):
-    '''
-    Delete check
-    '''
-    if not "checks" in conf.get_conf():
-        # No check
-        return JSONResponse(status_code=404, content={"message": "No check available"})
-    ori_checks = conf.get_conf()["checks"]
-    all_checks = []
-    for ch in ori_checks:
-        if ch["name"] != name:
-            # Not Matched!
-            all_checks.append(ch)
-    conf.set_key_value("checks", all_checks)
-    return JSONResponse(status_code=200, content={"message": "success"})
-
 
 @app.get("/canvas/position", tags=["canvas"], summary="Get the position", description="Get the position.")
 async def get_position():
