@@ -12,6 +12,7 @@ Canvas App
 This file contains all the APIs to access the configuration file/canvas backend, etc..
 '''
 
+
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from config_mgr import ConfigMGR
@@ -20,8 +21,8 @@ from models import Position, Check, Course
 from fastapi.responses import JSONResponse
 from os import path
 import json
-
-app = FastAPI(version='0.1.0', title='Canvas Helper', description='Canvas Helper API.')
+app = FastAPI(
+    version='0.1.0', title='Canvas Helper', description='Canvas Helper API.')
 
 app.add_middleware(
     CORSMiddleware,
@@ -38,10 +39,12 @@ conf = ConfigMGR()
 async def get_configuration():
     return conf.get_conf()
 
-@app.get("/config/refresh",tags=["config"], summary="Refresh the configuration file", description="Force to read the configuration file from disk.")
+
+@app.get("/config/refresh", tags=["config"], summary="Refresh the configuration file", description="Force to read the configuration file from disk.")
 async def refresh_conf():
     conf.force_read()
     return JSONResponse(status_code=200, content={"message": "success"})
+
 
 @app.get("/config/key/{key}", tags=["config"], summary="Get a specific key from the configuration file", description="Get a specific key from the configuration file.")
 async def get_configuration(key: str):
@@ -49,15 +52,17 @@ async def get_configuration(key: str):
         return JSONResponse(status_code=404, content={"message": "Key not found"})
     return conf.get_conf()[key]
 
+
 @app.put("/config/key/{key}", tags=["config"], summary="Update a specific key in the configuration file", description="Update a specific key in the configuration file.")
 async def update_configuration(key: str, request: Request):
     body = await request.body()
     try:
-        body_p = json.loads('{"data" : ' + body.decode(encoding='utf-8') +'}')
+        body_p = json.loads('{"data" : ' + body.decode(encoding='utf-8') + '}')
     except:
         return JSONResponse(status_code=400, content={"message": "Cannot parse body"})
     conf.set_key_value(key, body_p["data"])
     return JSONResponse(status_code=200, content={"message": "success"})
+
 
 @app.delete("/config/key/{key}", tags=["config"], summary="Delete a specific key in the configuration file", description="Delete a specific key in the configuration file.")
 async def delete_configuration(key: str):
@@ -65,6 +70,7 @@ async def delete_configuration(key: str):
         return JSONResponse(status_code=404, content={"message": "Key not found"})
     conf.remove_key(key)
     return JSONResponse(status_code=200, content={"message": "success"})
+
 
 @app.get("/config/verify", tags=["config"], summary="Verify the configuration file", description="Verify the configuration file.")
 async def verify_config():
@@ -83,17 +89,20 @@ async def verify_config():
         'Authorization': f'Bearer {conf.get_conf()["bid"]}'
     }
     print(conf.get_conf()["url"])
-    res = requests.get(path.join(conf.get_conf()["url"], 'api/v1/accounts'), headers=headers).status_code
+    res = requests.get(path.join(
+        conf.get_conf()["url"], 'api/v1/accounts'), headers=headers).status_code
     if res == 200:
         return JSONResponse(status_code=200, content={"message": "success"})
     else:
         return JSONResponse(status_code=400, content={"message": "Invalid bid"})
+
 
 @app.get("/courses", tags=["course"], summary="Get all the courses", description="Get all the courses.")
 async def get_all_courses():
     if not "courses" in conf.get_conf():
         return JSONResponse(status_code=404, content={"message": "Courses not found"})
     return conf.get_conf()["courses"]
+
 
 @app.delete("/courses/{course_id}", tags=["course"], summary="Delete a course", description="Delete a course. It will delete all the course items with the given course id.")
 async def delete_course(course_id: int):
@@ -107,6 +116,7 @@ async def delete_course(course_id: int):
     conf.set_key_value("courses", all_courses)
     return JSONResponse(status_code=200, content={"message": "success"})
 
+
 @app.delete("/courses/{course_id}/{type}", tags=["course"], summary="Delete a course item", description="Delete a course item. It will delete the course item with the given course id and type.")
 async def delete_course(course_id: int, type: str):
     if not "courses" in conf.get_conf():
@@ -119,17 +129,18 @@ async def delete_course(course_id: int, type: str):
     conf.set_key_value("courses", all_courses)
     return JSONResponse(status_code=200, content={"message": "success"})
 
+
 @app.post("/courses", tags=["course"], summary="Add a course", description="Add a course.")
 async def create_course(course: Course):
     if course.type not in ['ann', 'dis', 'ass']:
         return JSONResponse(status_code=400, content={"message": "Invalid course type"})
     course_info = {
-            "course_id": course.id,
-            "course_name": course.name,
-            "type": course.type,
-            "maxshow": course.maxshow,
-            "order": course.order,
-            "msg": course.msg
+        "course_id": course.id,
+        "course_name": course.name,
+        "type": course.type,
+        "maxshow": course.maxshow,
+        "order": course.order,
+        "msg": course.msg
     }
     if not "courses" in conf.get_conf():
         ori_courses = []
@@ -146,7 +157,30 @@ async def create_course(course: Course):
 
 @app.put("/courses", tags=["course"], summary="Modify a course", description="Modify a course.")
 async def modify_course(index: int, course: Course):
-    return course
+    if not "courses" in conf.get_conf():
+        return JSONResponse(status_code=404, content={"message": "Courses not found"})
+    courses = conf.get_conf()["courses"]
+    if index >= len(courses) or index < 0:
+        return JSONResponse(status_code=404, content={"message": "Course not found"})
+    if course.type not in ['ann', 'ass', 'dis']:
+        return JSONResponse(status_code=400, content={"message": "Invalid course type"})
+    course_info = {
+        "course_id": course.id,
+        "course_name": course.name,
+        "type": course.type,
+        "maxshow": course.maxshow,
+        "order": course.order,
+        "msg": course.msg
+    }
+    courses[index] = course_info
+    # Test if the course already exists
+    for i in range(len(courses)):
+        if i != index and courses[i]["course_id"] == course.id and courses[i]["type"] == course.type:
+            return JSONResponse(status_code=400, content={"message": "Course already exists"})
+
+    conf.set_key_value("courses", courses)
+    return JSONResponse(status_code=200, content={"message": "success"})
+
 
 @app.get("/canvas/dashboard", tags=["canvas"], summary="Get the dashboard", description="Get the dashboard.")
 async def get_dashboard(cache: bool = False):
@@ -163,7 +197,7 @@ async def get_dashboard(cache: bool = False):
 
 
 @app.post("/canvas/check/{name}", tags=["canvas"], summary="Check some task", description="Check some task.")
-async def set_check(name:str, check: Check):
+async def set_check(name: str, check: Check):
     '''
     Check
 
