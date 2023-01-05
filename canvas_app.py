@@ -13,6 +13,7 @@ This file contains all the APIs to access the configuration file/canvas backend,
 '''
 
 from fastapi import FastAPI, Request
+from fastapi.middleware.cors import CORSMiddleware
 from config_mgr import ConfigMGR
 from canvas_mgr import CanvasMGR
 from models import Position, Check, Course
@@ -21,6 +22,15 @@ from os import path
 import json
 
 app = FastAPI(version='0.1.0', title='Canvas Helper', description='Canvas Helper API.')
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 conf = ConfigMGR()
 
 
@@ -33,13 +43,13 @@ async def refresh_conf():
     conf.force_read()
     return JSONResponse(status_code=200, content={"message": "success"})
 
-@app.get("/config/{key}", tags=["config"], summary="Get a specific key from the configuration file", description="Get a specific key from the configuration file.")
+@app.get("/config/key/{key}", tags=["config"], summary="Get a specific key from the configuration file", description="Get a specific key from the configuration file.")
 async def get_configuration(key: str):
     if key not in conf.get_conf():
         return JSONResponse(status_code=404, content={"message": "Key not found"})
     return conf.get_conf()[key]
 
-@app.put("/config/{key}", tags=["config"], summary="Update a specific key in the configuration file", description="Update a specific key in the configuration file.")
+@app.put("/config/key/{key}", tags=["config"], summary="Update a specific key in the configuration file", description="Update a specific key in the configuration file.")
 async def update_configuration(key: str, request: Request):
     body = await request.body()
     try:
@@ -49,12 +59,35 @@ async def update_configuration(key: str, request: Request):
     conf.set_key_value(key, body_p["data"])
     return JSONResponse(status_code=200, content={"message": "success"})
 
-@app.delete("/config/{key}", tags=["config"], summary="Delete a specific key in the configuration file", description="Delete a specific key in the configuration file.")
+@app.delete("/config/key/{key}", tags=["config"], summary="Delete a specific key in the configuration file", description="Delete a specific key in the configuration file.")
 async def delete_configuration(key: str):
     if key not in conf.get_conf():
         return JSONResponse(status_code=404, content={"message": "Key not found"})
     conf.remove_key(key)
     return JSONResponse(status_code=200, content={"message": "success"})
+
+@app.get("/config/verify", tags=["config"])
+async def verify_config():
+    '''
+    Verify the configuration
+    '''
+    if "bid" not in conf.get_conf():
+        return JSONResponse(status_code=404, content={"message": "bid not found"})
+    if "url" not in conf.get_conf():
+        return JSONResponse(status_code=404, content={"message": "url not found"})
+    # Test bid
+
+    import requests
+
+    headers = {
+        'Authorization': f'Bearer {conf.get_conf()["bid"]}'
+    }
+    print(conf.get_conf()["url"])
+    res = requests.get(path.join(conf.get_conf()["url"], 'api/v1/accounts'), headers=headers).status_code
+    if res == 200:
+        return JSONResponse(status_code=200, content={"message": "success"})
+    else:
+        return JSONResponse(status_code=400, content={"message": "Invalid bid"})
 
 @app.get("/courses", tags=["course"], summary="Get all the courses", description="Get all the courses.")
 async def get_all_courses():
@@ -123,8 +156,8 @@ async def get_dashboard(cache: bool = False):
     return {"data": canvas.get_response()}
 
 
-@app.post("/canvas/check", tags=["canvas"], summary="Check some task", description="Check some task.")
-async def set_check(check: Check):
+@app.post("/canvas/check/{name}", tags=["canvas"], summary="Check some task", description="Check some task.")
+async def set_check(name:str, check: Check):
     '''
     Check
 
@@ -132,18 +165,18 @@ async def set_check(check: Check):
     '''
     if check.type == None or check.type <= 0 or check.type >= 4:
         return JSONResponse(status_code=400, content={"message": "Invalid check type"})
-    all_checks = [{"name": check.name, "type": check.type}]
+    all_checks = [{"name": name, "type": check.type}]
     if "checks" in conf.get_conf():
         ori_checks = conf.get_conf()["checks"]
         for ori_check in ori_checks:
-            if ori_check["name"] != check.name:
+            if ori_check["name"] != name:
                 all_checks.append(ori_check)
     conf.set_key_value("checks", all_checks)
     return JSONResponse(status_code=200, content={"message": "success"})
 
 
-@app.delete("/canvas/check", tags=["canvas"], summary="Delete a check", description="Delete a check.")
-async def delete_check(check: Check):
+@app.delete("/canvas/check/{name}", tags=["canvas"], summary="Delete a check", description="Delete a check.")
+async def delete_check(name: str):
     '''
     Delete check
     '''
@@ -153,7 +186,7 @@ async def delete_check(check: Check):
     ori_checks = conf.get_conf()["checks"]
     all_checks = []
     for ch in ori_checks:
-        if ch["name"] != check.name:
+        if ch["name"] != name:
             # Not Matched!
             all_checks.append(ch)
     conf.set_key_value("checks", all_checks)

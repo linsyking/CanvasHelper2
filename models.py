@@ -19,7 +19,6 @@ class Position(BaseModel):
     height: int = Field(..., description="Height")
 
 class Check(BaseModel):
-    name: str = Field(..., description="Name of the check")
     type: int | None = None
 
 class Course(BaseModel):
