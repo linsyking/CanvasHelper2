@@ -81,6 +81,8 @@ async def verify_config():
         return JSONResponse(status_code=404, content={"message": "bid not found"})
     if "url" not in conf.get_conf():
         return JSONResponse(status_code=404, content={"message": "url not found"})
+    if "background_image" not in conf.get_conf() and "video" not in conf.get_conf():
+        return JSONResponse(status_code=400, content={"message": "background not set"})
     # Test bid
 
     import requests
