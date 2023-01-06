@@ -17,6 +17,7 @@ from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 from config_mgr import ConfigMGR
 from canvas_mgr import CanvasMGR
+import urllib.parse
 from models import Position, Check, Course
 from fastapi.responses import JSONResponse
 from os import path, listdir, remove, mkdir
@@ -90,7 +91,7 @@ async def verify_config():
     headers = {
         'Authorization': f'Bearer {conf.get_conf()["bid"]}'
     }
-    res = requests.get(path.join(
+    res = requests.get(urllib.parse.urljoin(
         conf.get_conf()["url"], 'api/v1/accounts'), headers=headers).status_code
     if res == 200:
         return JSONResponse(status_code=200, content={"message": "success"})
