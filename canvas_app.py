@@ -224,7 +224,7 @@ async def set_check(name: str, check: Check):
 
     Only 1,2,3 is available
     '''
-    if check.type == None or check.type < 0 or check.type > 3:
+    if check.type < 0 or check.type > 3:
         return JSONResponse(status_code=400, content={"message": "Invalid check type"})
     all_checks = [{"name": name, "type": check.type}]
     if "checks" in conf.get_conf():

@@ -22,7 +22,7 @@ class Position(BaseModel):
 
 
 class Check(BaseModel):
-    type: int | None = None
+    type: int
 
 
 class Course(BaseModel):
