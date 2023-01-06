@@ -2,10 +2,6 @@
 
 New generation of Canvas Helper backend.
 
-## Demo
-
-Currently we have hosted a demo at [here](https://yydbxx.cn/test/canvashelper/). We made some small change to that API so that you cannot access the secret.
-
 ## Workflow
 
 If you only want to run the backend in your machine and use the frontend on our server, then you only need to setup the backend.
