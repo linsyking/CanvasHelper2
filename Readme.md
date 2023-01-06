@@ -4,7 +4,7 @@ New generation of Canvas Helper backend.
 
 ## Workflow
 
-If you only want to run the backend in your machine and use the frontend on our server, then you only need to setup the backend.
+If you only want to run the backend on your machine and use the frontend on our server, then you only need 1 step.
 
 If you want to setup frontend by yourself, you have to do mainly 3 steps:
 
