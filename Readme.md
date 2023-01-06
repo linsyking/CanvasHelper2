@@ -8,7 +8,13 @@ You can go to [demo](https://yydbxx.cn/test/canvashelper/) to see the final resu
 
 ## Workflow
 
-If you only want to run the backend on your machine and use the frontend on our server, then you only need one step.
+If you only want to run the backend on your machine and use the frontend on our server, do the follwoing:
+
+1. Follow [documentation](https://github.com/linsyking/CanvasHelper2#run-backend), run the backend at port `9283`
+2. Goto <https://yydbxx.cn/canvashelper/> to configure your CanvasHelper
+2. Goto <https://yydbxx.cn/canvashelper/dashboard> to see the final result
+
+## Dev Workflow
 
 If you want to setup frontend by yourself or contribute to this project, you have to do mainly 3 steps:
 
