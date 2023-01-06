@@ -2,11 +2,15 @@
 
 New generation of Canvas Helper backend.
 
+## Demo
+
+You can go to [demo](https://yydbxx.cn/test/canvashelper/) to see the final result. That backend is hosted on our server but it didn't allow you to see the secrets.
+
 ## Workflow
 
-If you only want to run the backend on your machine and use the frontend on our server, then you only need 1 step.
+If you only want to run the backend on your machine and use the frontend on our server, then you only need one step.
 
-If you want to setup frontend by yourself, you have to do mainly 3 steps:
+If you want to setup frontend by yourself or contribute to this project, you have to do mainly 3 steps:
 
 1. Run the backend
 2. Run `CanvasHelper2-conf` and configure CanvasHelper in the browser
