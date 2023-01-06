@@ -1,3 +1,5 @@
+const api_url = 'http://localhost:9283';
+
 function loadcheck() {
     $('.checkbox').each(function () {
         if ($(this).hasClass('positive')) {
@@ -136,32 +138,21 @@ function getIndex(str, s) {
     return pa;
 }
 
-function fixedEncodeURIComponent(str) {
-    return str.replace(/[!'()*]/g, function (c) {
-        return '%' + c.charCodeAt(0).toString(16);
-    });
-}
-
 function add_bg() {
-    if (window.bgimage) {
-        $('head').append('<style>body, .box::before{background: url(' + fixedEncodeURIComponent(window.bgimage) + ') 0 / cover fixed;}</style>');
-        return;
-    }
     if (window.udatap['background_image']) {
         const bgv = window.udatap['background_image'];
-        $('head').append('<style>body, .box::before{background: url(res/' + bgv + ') 0 / cover fixed;}</style>');
-        window.bgimage = bgv;
+        $('head').append('<style>body, .box::before{background: url(' + apilink('/file/' + bgv) + ') 0 / cover fixed;}</style>');
     }
 }
 
 function setVideobg() {
     if (window.udatap['video']) {
-        $("body").append('<video class="bgvideo" playsinline autoplay muted loop><source src="res/' + window.udatap['video'] + '" type="video/ogg"></video>');
+        $("body").append('<video class="bgvideo" playsinline autoplay muted loop><source src="' + apilink('/file/' + window.udatap['video']) + '" type="video/ogg"></video>');
     }
 }
 
 function apilink(apipath) {
-    return 'http://localhost:9283' + apipath;
+    return api_url + apipath;
 }
 
 function setupConfig() {
@@ -354,7 +345,10 @@ function sendpos() {
 
 function setpos() {
     $.ajax(apilink('/canvas/position'), {
-        type: 'GET'
+        type: 'GET',
+        error: function (data) {
+            showup();
+        }
     }).done(function (data) {
         try {
             var mydiv = document.getElementById("c1");
