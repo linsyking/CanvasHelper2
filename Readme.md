@@ -109,7 +109,12 @@ After that, your system will run this script on startup.
 
 ### KDE
 
-*TO-DO*
+1. Install [wallpaper-engine-kde-plugin](https://github.com/catsout/wallpaper-engine-kde-plugin).
+2. Download the canvas wallpaper <https://steamcommunity.com/sharedfiles/filedetails/?id=2913474561>.
+3. You should be able to see the wallpaper.
+4. Add a startup script to run the backend.
+
+**Note: scrolling is also not supported.**
 
 ## FAQ
 
