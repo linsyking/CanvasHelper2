@@ -13,6 +13,7 @@ This file contains all the APIs to access the configuration file/canvas backend,
 '''
 
 from fastapi import FastAPI, Request, UploadFile
+from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 from config_mgr import ConfigMGR
 from canvas_mgr import CanvasMGR
@@ -277,5 +278,13 @@ async def delete_file(name: str):
 async def get_file_list():
     if path.exists('./public/res'):
         return {"files": listdir('./public/res')}
+    else:
+        return JSONResponse(status_code=404, content={"message": "File not found"})
+
+
+@app.get("/file/{name}", tags=["file"], summary="Get file", description="Get file in public/res.")
+async def get_file(name: str):
+    if path.exists(f'./public/res/{name}'):
+        return FileResponse(f'./public/res/{name}')
     else:
         return JSONResponse(status_code=404, content={"message": "File not found"})
