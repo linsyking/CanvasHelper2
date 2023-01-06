@@ -101,7 +101,7 @@ async def verify_config():
 @app.get("/courses", tags=["course"], summary="Get all the courses", description="Get all the courses.")
 async def get_all_courses():
     if not "courses" in conf.get_conf():
-        return JSONResponse(status_code=404, content={"message": "Courses not found"})
+        return []
     return conf.get_conf()["courses"]
 
 
