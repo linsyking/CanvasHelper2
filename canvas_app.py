@@ -62,7 +62,8 @@ async def get_configuration_key(key: str):
 async def update_configuration(key: str, request: Request):
     body = await request.body()
     try:
-        body_p = json.loads('{"data" : ' + body.decode(encoding='utf-8') + '}')
+        body_p = json.loads(
+            '{"data" : ' + body.decode(encoding='utf-8') + '}')
     except:
         return JSONResponse(status_code=400, content={"message": "Cannot parse body"})
     conf.set_key_value(key, body_p["data"])
@@ -105,14 +106,14 @@ async def verify_config():
 
 @app.get("/courses", tags=["course"], summary="Get all the courses", description="Get all the courses.")
 async def get_all_courses():
-    if not "courses" in conf.get_conf():
+    if "courses" not in conf.get_conf():
         return []
     return conf.get_conf()["courses"]
 
 
 @app.get("/courses/canvas", tags=["course"], summary="Get all the courses from canvas", description="Get all the courses from canvas.")
-async def get_all_courses():
-    if not "bid" in conf.get_conf():
+async def get_all_canvas_courses():
+    if "bid" not in conf.get_conf():
         return JSONResponse(status_code=404, content={"message": "bid not found"})
 
     import requests
@@ -127,7 +128,7 @@ async def get_all_courses():
 
 @app.delete("/courses/{course_id}", tags=["course"], summary="Delete a course", description="Delete a course. It will delete all the course items with the given course id.")
 async def delete_course(course_id: int):
-    if not "courses" in conf.get_conf():
+    if "courses" not in conf.get_conf():
         return JSONResponse(status_code=404, content={"message": "Courses not found"})
     courses = conf.get_conf()["courses"]
     all_courses = []
@@ -139,8 +140,8 @@ async def delete_course(course_id: int):
 
 
 @app.delete("/courses/{course_id}/{type}", tags=["course"], summary="Delete a course item", description="Delete a course item. It will delete the course item with the given course id and type.")
-async def delete_course(course_id: int, type: str):
-    if not "courses" in conf.get_conf():
+async def delete_course_item(course_id: int, type: str):
+    if "courses" not in conf.get_conf():
         return JSONResponse(status_code=404, content={"message": "Courses not found"})
     courses = conf.get_conf()["courses"]
     all_courses = []
@@ -165,7 +166,7 @@ async def create_course(course: Course):
         "order": course.order,
         "msg": course.msg
     }
-    if not "courses" in conf.get_conf():
+    if "courses" not in conf.get_conf():
         ori_courses = []
     else:
         ori_courses = conf.get_conf()["courses"]
@@ -180,7 +181,7 @@ async def create_course(course: Course):
 
 @app.put("/courses", tags=["course"], summary="Modify a course", description="Modify a course.")
 async def modify_course(index: int, course: Course):
-    if not "courses" in conf.get_conf():
+    if "courses" not in conf.get_conf():
         return JSONResponse(status_code=404, content={"message": "Courses not found"})
     courses = conf.get_conf()["courses"]
     if index >= len(courses) or index < 0:
@@ -230,7 +231,8 @@ async def set_check(name: str, check: Check):
     '''
     if check.type < 0 or check.type > 3:
         return JSONResponse(status_code=400, content={"message": "Invalid check type"})
-    all_checks = [{"name": name, "type": check.type}]
+    all_checks = [
+        {"name": name, "type": check.type}]
     if "checks" in conf.get_conf():
         ori_checks = conf.get_conf()["checks"]
         for ori_check in ori_checks:
@@ -287,7 +289,7 @@ async def get_file_list():
         return {"files": listdir('./public/res')}
     else:
         mkdir('./public/res')
-        return {"files":[]}
+        return {"files": []}
 
 
 @app.get("/file/{name}", tags=["file"], summary="Get file", description="Get file in public/res.")

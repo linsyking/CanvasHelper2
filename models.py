@@ -5,6 +5,7 @@
 @Email: linsy_king@sjtu.edu.cn
 @Url: https://yydbxx.cn
 '''
+
 from pydantic import BaseModel, Field
 
 '''
