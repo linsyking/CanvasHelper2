@@ -6,13 +6,17 @@ New generation of Canvas Helper backend.
 
 You can go to [demo](https://yydbxx.cn/test/canvashelper/) to see the final result. That backend is hosted on our server but it didn't allow you to see the secrets.
 
+## Requirements
+
+- Python >= 3.10
+
 ## Workflow
 
 If you only want to run the backend on your machine and use the frontend on our server, do the follwoing:
 
 1. Follow [documentation](https://github.com/linsyking/CanvasHelper2#run-backend), run the backend at port `9283`
-2. Goto <https://yydbxx.cn/canvashelper/> to configure your CanvasHelper
-2. Goto <https://yydbxx.cn/canvashelper/dashboard> to see the final result
+2. Go to <https://yydbxx.cn/canvashelper/> to configure your CanvasHelper
+2. Go to <https://yydbxx.cn/canvashelper/dashboard> to see the final result
 
 ## Dev Workflow
 
@@ -56,13 +60,13 @@ If you need to expose the port, you can add option `--host 0.0.0.0`.
 
 ## Configure CanvasHelper
 
-If you want to use the frontend on your server, goto: [here](https://yydbxx.cn/canvashelper/). (Site might be changed in the future)
+If you want to use the frontend on your server, go to: [here](https://yydbxx.cn/canvashelper/). (Site might be changed in the future)
 
-Otherwise, goto [CanvasHelper2-conf](https://github.com/linsyking/CanvasHelper2-conf) for more details.
+Otherwise, go to [CanvasHelper2-conf](https://github.com/linsyking/CanvasHelper2-conf) for more details.
 
 ## Host static files
 
-If you want to see the result without hosting HTML files, you can directly goto [here](https://yydbxx.cn/canvashelper/dashboard/).
+If you want to see the result without hosting HTML files, you can directly go to [here](https://yydbxx.cn/canvashelper/dashboard/).
 
 You can use any http server you like to host the static html file.
 
