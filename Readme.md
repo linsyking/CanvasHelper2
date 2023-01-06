@@ -1,5 +1,7 @@
 # Canvas Helper 2
 
+[![build](https://github.com/linsyking/CanvasHelper2/actions/workflows/python-app.yml/badge.svg)](https://github.com/linsyking/CanvasHelper2/actions/workflows/python-app.yml)
+
 New generation of Canvas Helper backend. Web-based, support Linux, Windows and MacOS.
 
 ## Demo
@@ -8,7 +10,7 @@ You can go to [demo](https://yydbxx.cn/test/canvashelper/) to see the final resu
 
 ## Requirements
 
-- Python >= 3.10
+- Python >= 3.7
 
 ## Workflow
 
