@@ -90,7 +90,6 @@ async def verify_config():
     headers = {
         'Authorization': f'Bearer {conf.get_conf()["bid"]}'
     }
-    print(conf.get_conf()["url"])
     res = requests.get(path.join(
         conf.get_conf()["url"], 'api/v1/accounts'), headers=headers).status_code
     if res == 200:
@@ -104,6 +103,21 @@ async def get_all_courses():
     if not "courses" in conf.get_conf():
         return JSONResponse(status_code=404, content={"message": "Courses not found"})
     return conf.get_conf()["courses"]
+
+
+@app.get("/courses/canvas", tags=["course"], summary="Get all the courses from canvas", description="Get all the courses from canvas.")
+async def get_all_courses():
+    if not "bid" in conf.get_conf():
+        return JSONResponse(status_code=404, content={"message": "bid not found"})
+
+    import requests
+
+    headers = {
+        'Authorization': f'Bearer {conf.get_conf()["bid"]}'
+    }
+    res = requests.get(path.join(
+        conf.get_conf()["url"], 'api/v1/courses'), headers=headers).text
+    return json.loads(res)
 
 
 @app.delete("/courses/{course_id}", tags=["course"], summary="Delete a course", description="Delete a course. It will delete all the course items with the given course id.")
