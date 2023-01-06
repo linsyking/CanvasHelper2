@@ -8,7 +8,9 @@ Currently we have hosted a demo at [here](https://yydbxx.cn/test/canvashelper/).
 
 ## Workflow
 
-To see the result in the demo, you have to do mainly 3 steps.
+If you only want to run the backend in your machine and use the frontend on our server, then you only need to setup the backend.
+
+If you want to setup frontend by yourself, you have to do mainly 3 steps:
 
 1. Run the backend
 2. Run `CanvasHelper2-conf` and configure CanvasHelper in the browser
@@ -30,7 +32,7 @@ Install the dependencies:
 pip3 install -r requirements.txt
 ```
 
-If you don't want to change any settings (like CORS), you can directly run:
+If you don't want to change any settings (like CORS), you can directly run: (If you want to use frontend on our server, you must use `9283` port)
 
 ```bash
 uvicorn canvas_app:app --port 9283
@@ -48,9 +50,13 @@ If you need to expose the port, you can add option `--host 0.0.0.0`.
 
 ## Configure CanvasHelper
 
-Goto [CanvasHelper2-conf](https://github.com/linsyking/CanvasHelper2-conf) for more details.
+If you want to use the frontend on your server, goto: [here](https://yydbxx.cn/canvashelper/). (Site might be changed in the future)
+
+Otherwise, goto [CanvasHelper2-conf](https://github.com/linsyking/CanvasHelper2-conf) for more details.
 
 ## Host static files
+
+If you want to see the result without hosting HTML files, you can directly goto [here](https://yydbxx.cn/canvashelper/dashboard/).
 
 You can use any http server you like to host the static html file.
 
@@ -66,7 +72,7 @@ Now go to page <http://localhost:9282> to see the result!
 
 ### Wallpaper Engine
 
-You will need to download a template wallpaper and edit the HTML to redirect to `http://localhost:9282`.
+You will need to download a template wallpaper and edit the HTML to redirect to `http://localhost:9282` or our website (<https://yydbxx.cn/canvashelper/dashboard/>) if you didn't host it by yourself.
 
 **Note: some features in wallpaper engine are not well-supported, including scrolling.**
 
@@ -80,3 +86,7 @@ You will need to download a template wallpaper and edit the HTML to redirect to 
 
 > CanvasHelper 1 is centralized while CanvasHelper 2 is not. It is completely local so you don't have to connect to our server to use CanvasHelper.
 > Moreover, CanvasHelper 2 provides a handy web interface for configuring courses.
+
+- What's the relationship between Canvas Helper backend, frontend, and dashboard?
+
+> The backend provides several APIs for frontend and dashboard to call; frontend uses the local APIs to configure Canvas Helper. The dashboard also calls the local backend to get the configuration.
