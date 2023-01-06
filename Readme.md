@@ -1,6 +1,6 @@
 # Canvas Helper 2
 
-New generation of Canvas Helper backend.
+New generation of Canvas Helper backend. Web-based, support Linux, Windows and MacOS.
 
 ## Demo
 
@@ -115,6 +115,10 @@ After that, your system will run this script on startup.
 4. Add a startup script to run the backend.
 
 **Note: scrolling is also not supported.**
+
+Result:
+
+![demo](https://user-images.githubusercontent.com/49303317/210978732-68cefd73-75df-4013-a7cb-2010f16ec7dd.png)
 
 ## FAQ
 
