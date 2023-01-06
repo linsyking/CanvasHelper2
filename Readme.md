@@ -82,7 +82,28 @@ Now go to page <http://localhost:9282> to see the result!
 
 ### Wallpaper Engine
 
-You will need to download a template wallpaper and edit the HTML to redirect to `http://localhost:9282` or our website (<https://yydbxx.cn/canvashelper/dashboard/>) if you didn't host it by yourself.
+Subscribe template wallpaper: <https://steamcommunity.com/sharedfiles/filedetails/?id=2913474561>.
+
+After you started the backend locally, it will redirect to the [here](https://yydbxx.cn/canvashelper/dashboard/). You can also change it to your local frontend.
+
+To start the backend on startup, you can do the following:
+
+1. Win+R, type `shell:startup`
+2. In the opened window, create a file called `canvashelper.cmd`
+
+Its content should be like this:
+
+```cmd
+@echo off
+
+d:
+cd D:\Project\CanvasHelper2
+uvicorn canvas_app:app --port 9283
+```
+
+Make sure you change the directory to yours! Here my folder is `D:\Project\CanvasHelper2`.
+
+After that, your system will run this script on startup.
 
 **Note: some features in wallpaper engine are not well-supported, including scrolling.**
 
