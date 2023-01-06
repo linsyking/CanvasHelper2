@@ -19,7 +19,7 @@ from config_mgr import ConfigMGR
 from canvas_mgr import CanvasMGR
 from models import Position, Check, Course
 from fastapi.responses import JSONResponse
-from os import path, listdir, remove
+from os import path, listdir, remove, mkdir
 import json
 app = FastAPI(
     version='1.0.0', title='Canvas Helper', description='Canvas Helper API.')
@@ -260,6 +260,8 @@ async def update_position(position: Position):
 
 @app.post("/file/upload", tags=["file"], summary="Upload file", description="Upload file to public/res.")
 async def upload_file(file: UploadFile):
+    if not path.exists('./public/res'):
+        mkdir('./public/res')
     with open(f'./public/res/{file.filename}', 'wb') as out_file:
         out_file.write(file.file.read())
     return JSONResponse(status_code=200, content={"message": "success"})
