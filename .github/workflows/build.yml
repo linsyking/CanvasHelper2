@@ -34,5 +34,4 @@ jobs:
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
     - name: Test run
       run: |
-        timeout 3 uvicorn canvas_app:app --port 9283
-        if [ $? -eq 124 ]; then exit 0; else exit -1; fi
+        timeout 3 uvicorn canvas_app:app --port 9283 && if [ $? -eq 124 ]; then exit 0; else exit -1; fi

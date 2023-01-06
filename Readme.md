@@ -1,6 +1,6 @@
 # Canvas Helper 2
 
-[![build](https://github.com/linsyking/CanvasHelper2/actions/workflows/python-app.yml/badge.svg)](https://github.com/linsyking/CanvasHelper2/actions/workflows/python-app.yml)
+[![build](https://github.com/linsyking/CanvasHelper2/actions/workflows/build.yml/badge.svg)](https://github.com/linsyking/CanvasHelper2/actions/workflows/build.yml)
 
 New generation of Canvas Helper backend. Web-based, support Linux, Windows and MacOS.
 
