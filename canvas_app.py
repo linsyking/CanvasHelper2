@@ -116,7 +116,7 @@ async def get_all_courses():
     headers = {
         'Authorization': f'Bearer {conf.get_conf()["bid"]}'
     }
-    res = requests.get(path.join(
+    res = requests.get(urllib.parse.urljoin(
         conf.get_conf()["url"], 'api/v1/courses'), headers=headers).text
     return json.loads(res)
 
