@@ -6,12 +6,6 @@
 @Url: https://yydbxx.cn
 '''
 
-'''
-Canvas App
-
-This file contains all the APIs to access the configuration file/canvas backend, etc..
-'''
-
 from fastapi import FastAPI, Request, UploadFile
 from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
@@ -22,6 +16,16 @@ from models import Position, Check, Course
 from fastapi.responses import JSONResponse
 from os import path, listdir, remove, mkdir
 import json
+
+
+'''
+Canvas App
+
+This file contains all the APIs to access the
+configuration file/canvas backend, etc..
+'''
+
+
 app = FastAPI(
     version='1.0.0', title='Canvas Helper', description='Canvas Helper API.')
 
@@ -48,7 +52,7 @@ async def refresh_conf():
 
 
 @app.get("/config/key/{key}", tags=["config"], summary="Get a specific key from the configuration file", description="Get a specific key from the configuration file.")
-async def get_configuration(key: str):
+async def get_configuration_key(key: str):
     if key not in conf.get_conf():
         return JSONResponse(status_code=404, content={"message": "Key not found"})
     return conf.get_conf()[key]

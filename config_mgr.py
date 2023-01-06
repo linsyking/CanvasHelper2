@@ -6,6 +6,9 @@
 @Url: https://yydbxx.cn
 '''
 
+import json
+from os import path
+
 '''
 Configuration Manager
 
@@ -16,8 +19,7 @@ It will include:
 - All courses configuration
 '''
 
-import json
-from os import path
+
 class ConfigMGR:
     configuration = None
 
@@ -40,10 +42,10 @@ class ConfigMGR:
         self.check_health()
         with open('./user_conf.json', 'w') as f:
             json.dump(self.configuration, f, ensure_ascii=False, indent=4)
-    
+
     def get_conf(self):
         return self.configuration
-    
+
     def remove_key(self, key: str):
         self.configuration.pop(key)
         self.write_conf()
@@ -58,11 +60,11 @@ class ConfigMGR:
     def check_health(self):
         if not self.configuration:
             raise Exception('No configuration found')
-        
+
     def set_key_value(self, key, value):
         self.configuration[key] = value
         self.write_conf()
-    
+
     def update_conf(self, conf):
         '''
         Update the whole configuration

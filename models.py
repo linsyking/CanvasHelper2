@@ -5,15 +5,13 @@
 @Email: linsy_king@sjtu.edu.cn
 @Url: https://yydbxx.cn
 '''
+from pydantic import BaseModel, Field
 
 '''
 Models
 '''
 
 
-
-
-from pydantic import BaseModel, Field
 class Position(BaseModel):
     left: int = Field(..., description="Left position")
     top: int = Field(..., description="Top position")

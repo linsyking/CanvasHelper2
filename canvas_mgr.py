@@ -6,17 +6,17 @@
 @Url: https://yydbxx.cn
 '''
 
-'''
-Canvas Manager
-
-Contact with canvas.
-'''
-
 from datetime import datetime, timedelta
 from math import floor
 import requests
 import json
 import os
+
+'''
+Canvas Manager
+
+Contact with canvas.
+'''
 
 
 class CanvasMGR:
@@ -30,7 +30,6 @@ class CanvasMGR:
     def __init__(self) -> None:
         if not os.path.exists('canvas'):
             os.mkdir('canvas')
-        
         # Check whether config file exists
         if not os.path.exists('./user_conf.json'):
             raise Exception('No configuration file found')
@@ -41,14 +40,14 @@ class CanvasMGR:
         self.g_out = ""
         self.g_tformat = "relative"
 
-        with open(f'./user_conf.json', 'r', encoding='utf-8', errors='ignore') as f:
+        with open('./user_conf.json', 'r', encoding='utf-8', errors='ignore') as f:
             self.ucommand = json.load(f)
 
         self.url = self.ucommand['url']
         self.bid = self.ucommand['bid']
-        if(self.url[-1] == '/'):
+        if self.url[-1] == '/':
             self.url = self.url[:-1]
-        if(self.url[:4] != 'http'):
+        if self.url[:4] != 'http':
             raise Exception("Invalid url")
 
         if "checks" in self.ucommand:
@@ -59,7 +58,7 @@ class CanvasMGR:
 
     def dump_out(self):
         # Caching
-        with open(f'./canvas/cache.json', 'w', encoding='utf-8', errors='ignore') as f:
+        with open('./canvas/cache.json', 'w', encoding='utf-8', errors='ignore') as f:
             f.write(
                 "<i>(Cached file, real-time data is still loading...)</i>\n"+self.g_out[:-1])
         return self.g_out[:-1]
@@ -79,7 +78,7 @@ class CanvasMGR:
         try:
             for course in courses:
                 allc.append(apilink(course, self.bid,
-                            self.url, self.usercheck , g_tformat=self.g_tformat))
+                            self.url, self.usercheck, g_tformat=self.g_tformat))
         except Exception as e:
             raise Exception('invalid course', e)
 
@@ -100,7 +99,7 @@ class CanvasMGR:
         for i in allc:
             try:
                 i.run()
-            except Exception as e:
+            except:
                 self.print_own(f"<h2>{i.cname} - Error</h2>\n{i.raw}")
 
         for i in allc:
@@ -110,7 +109,7 @@ class CanvasMGR:
 
 
 class apilink:
-    def __init__(self, course: dict, bid: str, url: str,user_check, g_tformat="relative") -> None:
+    def __init__(self, course: dict, bid: str, url: str, user_check, g_tformat="relative") -> None:
         self.headers = {
             'Authorization': f'Bearer {bid}'
         }
@@ -128,7 +127,7 @@ class apilink:
         self.usercheck = user_check
 
     def dump_span(self, style, id, text):
-        if(style == 1):
+        if style == 1:
             # Positive
             return f'<div class="single"><span class="checkbox positive" id="{id}"></span><span class="label">{text}</span></div>\n'
         elif style == 2:
@@ -146,9 +145,9 @@ class apilink:
         return s[f] + '.'
 
     def time_format_control(self, rtime: datetime, format):
-        if(rtime < self.now):
+        if rtime < self.now:
             return "Expired"
-        if(format == "origin"):
+        if format == "origin":
             return rtime
         elif format == "relative":
             return self.relative_date(rtime)
@@ -168,9 +167,9 @@ class apilink:
         delta = rtime.replace(hour=0, minute=0, second=0, microsecond=0) - \
             self.now.replace(hour=0, minute=0, second=0, microsecond=0)
         wp = int((delta.days+self.now.weekday())/7)
-        if(wp == 0):
+        if wp == 0:
             # Current week
-            if(delta.days == 0):
+            if delta.days == 0:
                 return f"Today {rtime.strftime('%H:%M:%S')}"
             elif delta.days == 1:
                 return f"Tomorrow {rtime.strftime('%H:%M:%S')}"
@@ -213,7 +212,7 @@ class apilink:
         self.add_custom_info()
 
     def add_custom_info(self):
-        if('msg' in self.other and self.other['msg'] != ""):
+        if 'msg' in self.other and self.other['msg'] != "":
             # Add custom message
             self.output += f'<p>{self.other["msg"]}</p>\n'
 
@@ -230,7 +229,7 @@ class apilink:
                     if k['due_at']:
                         dttime = datetime.strptime(
                             k['due_at'], '%Y-%m-%dT%H:%M:%SZ') + timedelta(hours=8)
-                        if(dttime < self.now):
+                        if dttime < self.now:
                             continue
                         self.ass_data.append(k)
                     elif k['updated_at']:
@@ -243,13 +242,13 @@ class apilink:
             maxnum = int(self.other['maxshow'])
             if maxnum == -1:
                 maxnum = 10000
-        if(len(self.ass_data) == 0 or maxnum <= 0):
+        if len(self.ass_data) == 0 or maxnum <= 0:
             self.output += "None\n"
             return
         if "order" in self.other and self.other['order'] == "reverse":
             self.ass_data.reverse()
         for ass in self.ass_data:
-            if(maxnum == 0):
+            if maxnum == 0:
                 break
             maxnum -= 1
             submit_msg = ''
@@ -279,17 +278,17 @@ class apilink:
         self.ann_data = anr
         self.output = f'<h2>{self.cname}: Announcements</h2>\n'
         maxnum = 10000
-        if("maxshow" in self.other):
+        if "maxshow" in self.other:
             maxnum = int(self.other['maxshow'])
             if maxnum == -1:
                 maxnum = 10000
-        if(len(anr) == 0 or maxnum <= 0):
+        if len(anr) == 0 or maxnum <= 0:
             self.output += "None.\n"
             return
         if "order" in self.other and self.other['order'] == "reverse":
             self.ann_data.reverse()
         for an in self.ann_data:
-            if(maxnum == 0):
+            if maxnum == 0:
                 break
             maxnum -= 1
             check_type = self.get_check_status(f"ann{an['id']}")
@@ -313,7 +312,7 @@ class apilink:
 
             if maxnum == -1:
                 maxnum = 10000
-        if(len(self.dis_data) == 0 or maxnum <= 0):
+        if len(self.dis_data) == 0 or maxnum <= 0:
             self.output += "None.\n"
             return
         if "order" in self.other and self.other['order'] == "reverse":
@@ -331,6 +330,7 @@ class apilink:
             return self.output
         else:
             return f"<p>Warning: no output for course {self.cname} (id: {self.course})</p>"
+
 
 if __name__ == "__main__":
     # TEST
