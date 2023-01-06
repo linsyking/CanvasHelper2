@@ -71,6 +71,8 @@ class CanvasMGR:
         self.reset()
         self.now = datetime.now()
 
+        if 'courses' not in self.ucommand:
+            return '<p>No course found!</p>'
         courses = self.ucommand['courses']
         allc = []
 
