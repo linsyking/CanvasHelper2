@@ -12,14 +12,13 @@ Canvas App
 This file contains all the APIs to access the configuration file/canvas backend, etc..
 '''
 
-
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from config_mgr import ConfigMGR
 from canvas_mgr import CanvasMGR
 from models import Position, Check, Course
 from fastapi.responses import JSONResponse
-from os import path
+from os import path, listdir
 import json
 app = FastAPI(
     version='1.0.0', title='Canvas Helper', description='Canvas Helper API.')
@@ -256,3 +255,17 @@ async def update_position(position: Position):
                        "width": position.width,
                        "height": position.height})
     return JSONResponse(status_code=200, content={"message": "success"})
+
+
+@app.post("/file/upload", tags=["file"], summary="Upload file", description="Upload file to public/res.")
+async def upload_file(file: UploadFile):
+    with open(f'./public/res/{file.filename}', 'wb') as out_file:
+        out_file.write(file.file.read())
+    return JSONResponse(status_code=200, content={"message": "success"})
+
+@app.get("/file", tags=["file"], summary="Get file list", description="Get files in public/res.")
+async def get_file_list():
+    if path.exists('./public/res'):
+        return {"files": listdir('./public/res')}
+    else:
+        return JSONResponse(status_code=404, content={"message": "File not found"})
