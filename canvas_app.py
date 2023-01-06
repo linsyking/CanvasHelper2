@@ -281,7 +281,8 @@ async def get_file_list():
     if path.exists('./public/res'):
         return {"files": listdir('./public/res')}
     else:
-        return JSONResponse(status_code=404, content={"message": "File not found"})
+        mkdir('./public/res')
+        return {"files":[]}
 
 
 @app.get("/file/{name}", tags=["file"], summary="Get file", description="Get file in public/res.")
