@@ -1,9 +1,7 @@
 # Project Specific
 canvas/
 user_conf.json
-*.webm
-*.jpg
-*.mp4
+public/res
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

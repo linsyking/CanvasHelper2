@@ -18,7 +18,7 @@ from config_mgr import ConfigMGR
 from canvas_mgr import CanvasMGR
 from models import Position, Check, Course
 from fastapi.responses import JSONResponse
-from os import path, listdir
+from os import path, listdir, remove
 import json
 app = FastAPI(
     version='1.0.0', title='Canvas Helper', description='Canvas Helper API.')
@@ -262,6 +262,16 @@ async def upload_file(file: UploadFile):
     with open(f'./public/res/{file.filename}', 'wb') as out_file:
         out_file.write(file.file.read())
     return JSONResponse(status_code=200, content={"message": "success"})
+
+
+@app.delete("/file", tags=["file"], summary="Delete file", description="Delete file in public/res.")
+async def delete_file(name: str):
+    if path.exists(f'./public/res/{name}'):
+        remove(f'./public/res/{name}')
+        return JSONResponse(status_code=200, content={"message": "success"})
+    else:
+        return JSONResponse(status_code=404, content={"message": "File not found"})
+
 
 @app.get("/file", tags=["file"], summary="Get file list", description="Get files in public/res.")
 async def get_file_list():
