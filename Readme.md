@@ -62,7 +62,7 @@ If you need to expose the port, you can add option `--host 0.0.0.0`.
 
 ## Configure CanvasHelper
 
-If you want to use the frontend on your server, go to: [here](https://yydbxx.cn/canvashelper/). (Site might be changed in the future)
+If you want to use the frontend on our server, go to: [here](https://yydbxx.cn/canvashelper/). (Site might be changed in the future)
 
 Otherwise, go to [CanvasHelper2-conf](https://github.com/linsyking/CanvasHelper2-conf) for more details.
 
