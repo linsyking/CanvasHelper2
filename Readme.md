@@ -6,7 +6,7 @@ New generation of Canvas Helper backend. Web-based, support Linux, Windows and M
 
 ## Demo
 
-You can go to [demo](https://yydbxx.cn/test/canvashelper/) to see the final result. That backend is hosted on our server but it didn't allow you to see the secrets.
+You can go to [demo](https://yydbxx.cn/test/canvashelper/) to see the final result (using the sample dashboard). That backend is hosted on our server but it didn't allow you to see the secrets.
 
 ## Requirements
 
@@ -14,7 +14,7 @@ You can go to [demo](https://yydbxx.cn/test/canvashelper/) to see the final resu
 
 ## Workflow
 
-If you only want to run the backend on your machine and use the frontend on our server, do the follwoing:
+If you only want to run the backend on your machine and use the frontend on our server, do the following:
 
 1. Follow [documentation](https://github.com/linsyking/CanvasHelper2#run-backend), run the backend at port `9283`
 2. Go to <https://yydbxx.cn/canvashelper/> to configure your CanvasHelper
@@ -26,7 +26,7 @@ If you want to setup frontend by yourself or contribute to this project, you hav
 
 1. Run the backend
 2. Run `CanvasHelper2-conf` and configure CanvasHelper in the browser
-3. Run an HTTP server to host the static HTML files
+3. Run an HTTP server to host the static HTML files (or develop your own dashboard frontend)
 
 ## Run backend
 
@@ -72,10 +72,12 @@ If you want to see the result without hosting HTML files, you can directly go to
 
 You can use any http server you like to host the static html file.
 
-For example,
+The sample dashboard frontend is at <https://github.com/linsyking/CanvasHelper2-dashboard>.
+
+You can clone that repository and host those files by
 
 ```bash
-python3 -m http.server 9282 --directory ./public/
+python3 -m http.server 9282
 ```
 
 Now go to page <http://localhost:9282> to see the result!
@@ -109,7 +111,7 @@ After that, your system will run this script on startup.
 
 **Note: some features in wallpaper engine are not well-supported, including scrolling.**
 
-### KDE
+### KDE Wallpaper
 
 1. Install [wallpaper-engine-kde-plugin](https://github.com/catsout/wallpaper-engine-kde-plugin).
 2. Download the canvas wallpaper <https://steamcommunity.com/sharedfiles/filedetails/?id=2913474561>.
@@ -122,13 +124,24 @@ Result:
 
 ![demo](https://user-images.githubusercontent.com/49303317/210978732-68cefd73-75df-4013-a7cb-2010f16ec7dd.png)
 
+### KDE Widget
+
+(Another dashboard frontend)
+
+*TO-DO*
+
 ## FAQ
 
 - What's the difference between CanvasHelper and CanvasHelper 2?
 
 > CanvasHelper 1 is centralized while CanvasHelper 2 is not. It is completely local so you don't have to connect to our server to use CanvasHelper.
 > Moreover, CanvasHelper 2 provides a handy web interface for configuring courses.
+> CanvasHelper 2 separates frontend and backend so that you can develop your own dashboard frontend on any operating system/desktop environment.
 
 - What's the relationship between Canvas Helper backend, frontend, and dashboard?
 
 > The backend provides several APIs for frontend and dashboard to call; frontend uses the local APIs to configure Canvas Helper. The dashboard also calls the local backend to get the configuration.
+
+- Do I have to use the sample dashboard frontend?
+
+> No. You can develop your own dashboard frontend. The sample dashboard frontend uses the HTML output from this backend and displays it in a draggable box.

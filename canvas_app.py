@@ -40,25 +40,33 @@ app.add_middleware(
 conf = ConfigMGR()
 
 
-@app.get("/config", summary="Get the configuration file", description="Get the configuration file.", tags=["config"])
+@app.get("/config",
+         summary="Get the configuration file",
+         description="Get the configuration file.", tags=["config"])
 async def get_configuration():
     return conf.get_conf()
 
 
-@app.get("/config/refresh", tags=["config"], summary="Refresh the configuration file", description="Force to read the configuration file from disk.")
+@app.get("/config/refresh", tags=["config"],
+         summary="Refresh the configuration file",
+         description="Force to read the configuration file from disk.")
 async def refresh_conf():
     conf.force_read()
     return JSONResponse(status_code=200, content={"message": "success"})
 
 
-@app.get("/config/key/{key}", tags=["config"], summary="Get a specific key from the configuration file", description="Get a specific key from the configuration file.")
+@app.get("/config/key/{key}", tags=["config"],
+         summary="Get a specific key from the configuration file",
+         description="Get a specific key from the configuration file.")
 async def get_configuration_key(key: str):
     if key not in conf.get_conf():
         return JSONResponse(status_code=404, content={"message": "Key not found"})
     return conf.get_conf()[key]
 
 
-@app.put("/config/key/{key}", tags=["config"], summary="Update a specific key in the configuration file", description="Update a specific key in the configuration file.")
+@app.put("/config/key/{key}", tags=["config"],
+         summary="Update a specific key in the configuration file",
+         description="Update a specific key in the configuration file.")
 async def update_configuration(key: str, request: Request):
     body = await request.body()
     try:
@@ -70,7 +78,9 @@ async def update_configuration(key: str, request: Request):
     return JSONResponse(status_code=200, content={"message": "success"})
 
 
-@app.delete("/config/key/{key}", tags=["config"], summary="Delete a specific key in the configuration file", description="Delete a specific key in the configuration file.")
+@app.delete("/config/key/{key}", tags=["config"],
+            summary="Delete a specific key in the configuration file",
+            description="Delete a specific key in the configuration file.")
 async def delete_configuration(key: str):
     if key not in conf.get_conf():
         return JSONResponse(status_code=404, content={"message": "Key not found"})
@@ -78,7 +88,9 @@ async def delete_configuration(key: str):
     return JSONResponse(status_code=200, content={"message": "success"})
 
 
-@app.get("/config/verify", tags=["config"], summary="Verify the configuration file", description="Verify the configuration file.")
+@app.get("/config/verify", tags=["config"],
+         summary="Verify the configuration file",
+         description="Verify the configuration file.")
 async def verify_config():
     '''
     Verify the configuration
@@ -104,14 +116,18 @@ async def verify_config():
         return JSONResponse(status_code=400, content={"message": "Invalid bid"})
 
 
-@app.get("/courses", tags=["course"], summary="Get all the courses", description="Get all the courses.")
+@app.get("/courses", tags=["course"],
+         summary="Get all the courses",
+         description="Get all the courses.")
 async def get_all_courses():
     if "courses" not in conf.get_conf():
         return []
     return conf.get_conf()["courses"]
 
 
-@app.get("/courses/canvas", tags=["course"], summary="Get all the courses from canvas", description="Get all the courses from canvas.")
+@app.get("/courses/canvas", tags=["course"],
+         summary="Get all the courses from canvas",
+         description="Get all the courses from canvas.")
 async def get_all_canvas_courses():
     if "bid" not in conf.get_conf():
         return JSONResponse(status_code=404, content={"message": "bid not found"})
@@ -126,7 +142,9 @@ async def get_all_canvas_courses():
     return json.loads(res)
 
 
-@app.delete("/courses/{course_id}", tags=["course"], summary="Delete a course", description="Delete a course. It will delete all the course items with the given course id.")
+@app.delete("/courses/{course_id}", tags=["course"],
+            summary="Delete a course",
+            description="Delete a course. It will delete all the course items with the given course id.")
 async def delete_course(course_id: int):
     if "courses" not in conf.get_conf():
         return JSONResponse(status_code=404, content={"message": "Courses not found"})
@@ -139,7 +157,9 @@ async def delete_course(course_id: int):
     return JSONResponse(status_code=200, content={"message": "success"})
 
 
-@app.delete("/courses/{course_id}/{type}", tags=["course"], summary="Delete a course item", description="Delete a course item. It will delete the course item with the given course id and type.")
+@app.delete("/courses/{course_id}/{type}", tags=["course"],
+            summary="Delete a course item",
+            description="Delete a course item. It will delete the course item with the given course id and type.")
 async def delete_course_item(course_id: int, type: str):
     if "courses" not in conf.get_conf():
         return JSONResponse(status_code=404, content={"message": "Courses not found"})
@@ -152,7 +172,9 @@ async def delete_course_item(course_id: int, type: str):
     return JSONResponse(status_code=200, content={"message": "success"})
 
 
-@app.post("/courses", tags=["course"], summary="Add a course", description="Add a course.")
+@app.post("/courses", tags=["course"],
+          summary="Add a course",
+          description="Add a course.")
 async def create_course(course: Course):
     if course.type not in ['ann', 'dis', 'ass']:
         return JSONResponse(status_code=400, content={"message": "Invalid course type"})
@@ -179,7 +201,9 @@ async def create_course(course: Course):
     return JSONResponse(status_code=200, content={"message": "success"})
 
 
-@app.put("/courses", tags=["course"], summary="Modify a course", description="Modify a course.")
+@app.put("/courses", tags=["course"],
+         summary="Modify a course",
+         description="Modify a course.")
 async def modify_course(index: int, course: Course):
     if "courses" not in conf.get_conf():
         return JSONResponse(status_code=404, content={"message": "Courses not found"})
@@ -208,21 +232,31 @@ async def modify_course(index: int, course: Course):
     return JSONResponse(status_code=200, content={"message": "success"})
 
 
-@app.get("/canvas/dashboard", tags=["canvas"], summary="Get the dashboard", description="Get the dashboard.")
-async def get_dashboard(cache: bool = False):
+@app.get("/canvas/dashboard", tags=["canvas"],
+         summary="Get the dashboard",
+         description="Get the dashboard.")
+async def get_dashboard(cache: bool = False, mode: str = "html"):
     if cache:
         # Use cache
         if path.exists('./canvas/cache.json'):
             with open('./canvas/cache.json', 'r') as f:
-                return {"data": f.read()}
+                obj = json.load(f)
+                if mode == "html":
+                    return {"data": obj["html"]}
+                elif mode == "json":
+                    return {"data": obj["json"]}
+                else:
+                    return JSONResponse(status_code=400, content={"message": "Mode not supported"})
         else:
             return JSONResponse(status_code=404, content={"message": "Cache not found"})
     # No cache
-    canvas = CanvasMGR()
+    canvas = CanvasMGR(mode)
     return {"data": canvas.get_response()}
 
 
-@app.post("/canvas/check/{name}", tags=["canvas"], summary="Check some task", description="Check some task.")
+@app.post("/canvas/check/{name}", tags=["canvas"],
+          summary="Check some task",
+          description="Check some task.")
 async def set_check(name: str, check: Check):
     '''
     Check
@@ -242,7 +276,9 @@ async def set_check(name: str, check: Check):
     return JSONResponse(status_code=200, content={"message": "success"})
 
 
-@app.get("/canvas/position", tags=["canvas"], summary="Get the position", description="Get the position.")
+@app.get("/canvas/position", tags=["canvas"],
+         summary="Get the position",
+         description="Get the position.")
 async def get_position():
     '''
     Get position
@@ -252,7 +288,9 @@ async def get_position():
     return conf.get_conf()["position"]
 
 
-@app.put("/canvas/position", tags=["canvas"], summary="Set the position", description="Set the position.")
+@app.put("/canvas/position", tags=["canvas"],
+         summary="Set the position",
+         description="Set the position.")
 async def update_position(position: Position):
     '''
     Set position
@@ -265,7 +303,9 @@ async def update_position(position: Position):
     return JSONResponse(status_code=200, content={"message": "success"})
 
 
-@app.post("/file/upload", tags=["file"], summary="Upload file", description="Upload file to public/res.")
+@app.post("/file/upload", tags=["file"],
+          summary="Upload file",
+          description="Upload file to public/res.")
 async def upload_file(file: UploadFile):
     if not path.exists('./public/res'):
         mkdir('./public/res')
@@ -274,7 +314,9 @@ async def upload_file(file: UploadFile):
     return JSONResponse(status_code=200, content={"message": "success"})
 
 
-@app.delete("/file", tags=["file"], summary="Delete file", description="Delete file in public/res.")
+@app.delete("/file", tags=["file"],
+            summary="Delete file",
+            description="Delete file in public/res.")
 async def delete_file(name: str):
     if path.exists(f'./public/res/{name}'):
         remove(f'./public/res/{name}')
@@ -283,7 +325,9 @@ async def delete_file(name: str):
         return JSONResponse(status_code=404, content={"message": "File not found"})
 
 
-@app.get("/file", tags=["file"], summary="Get file list", description="Get files in public/res.")
+@app.get("/file", tags=["file"],
+         summary="Get file list",
+         description="Get files in public/res.")
 async def get_file_list():
     if path.exists('./public/res'):
         return {"files": listdir('./public/res')}
@@ -292,7 +336,9 @@ async def get_file_list():
         return {"files": []}
 
 
-@app.get("/file/{name}", tags=["file"], summary="Get file", description="Get file in public/res.")
+@app.get("/file/{name}", tags=["file"],
+         summary="Get file",
+         description="Get file in public/res.")
 async def get_file(name: str):
     if path.exists(f'./public/res/{name}'):
         return FileResponse(f'./public/res/{name}')

@@ -26,14 +26,15 @@ class CanvasMGR:
     bid = ''
     ucommand = ''
     url = ''
+    output_mode = "html"
 
-    def __init__(self) -> None:
+    def __init__(self, output_mode: str = "html") -> None:
         if not os.path.exists('canvas'):
             os.mkdir('canvas')
         # Check whether config file exists
         if not os.path.exists('./user_conf.json'):
             raise Exception('No configuration file found')
-
+        self.output_mode = output_mode
         self.reset()
 
     def reset(self):
@@ -58,9 +59,12 @@ class CanvasMGR:
 
     def dump_out(self):
         # Caching
+        obj = {
+            "html": "<i>(Cached file)</i>\n"+self.g_out[:-1],
+            "json": "{}"
+        }
         with open('./canvas/cache.json', 'w', encoding='utf-8', errors='ignore') as f:
-            f.write(
-                "<i>(Cached file, real-time data is still loading...)</i>\n"+self.g_out[:-1])
+            json.dump(obj, f, ensure_ascii=False, indent=4)
         return self.g_out[:-1]
 
     def print_own(self, mystr):
