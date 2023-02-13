@@ -138,7 +138,7 @@ async def get_all_canvas_courses():
         'Authorization': f'Bearer {conf.get_conf()["bid"]}'
     }
     res = requests.get(urllib.parse.urljoin(
-        conf.get_conf()["url"], 'api/v1/courses'), headers=headers).text
+        conf.get_conf()["url"], 'api/v1/dashboard/dashboard_cards'), headers=headers).text
     return json.loads(res)
 
 
