@@ -40,7 +40,7 @@ class ConfigMGR:
         Write configuration to the local file.
         '''
         self.check_health()
-        with open('./user_conf.json', 'w') as f:
+        with open('./user_conf.json', 'w', encoding='utf-8', errors='ignore') as f:
             json.dump(self.configuration, f, ensure_ascii=False, indent=4)
 
     def get_conf(self):
@@ -54,7 +54,7 @@ class ConfigMGR:
         '''
         Read configuration file.
         '''
-        with open('./user_conf.json', 'r') as f:
+        with open('./user_conf.json', 'r', encoding='utf-8', errors='ignore') as f:
             self.configuration = json.load(f)
 
     def check_health(self):
