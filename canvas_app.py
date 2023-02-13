@@ -239,7 +239,7 @@ async def get_dashboard(cache: bool = False, mode: str = "html"):
     if cache:
         # Use cache
         if path.exists('./canvas/cache.json'):
-            with open('./canvas/cache.json', 'r') as f:
+            with open('./canvas/cache.json', 'r', encoding='utf-8', errors='ignore') as f:
                 obj = json.load(f)
                 if mode == "html":
                     return {"data": obj["html"]}
