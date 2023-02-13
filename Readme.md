@@ -93,9 +93,22 @@ After you started the backend locally, it will redirect to the [here](https://yy
 To start the backend on startup, you can do the following:
 
 1. Win+R, type `shell:startup`
-2. In the opened window, create a file called `canvashelper.cmd`
+2. In the opened window, create a file called `canvashelper.vbs`
 
 Its content should be like this:
+
+```vbs
+Dim WinScriptHost
+Set WinScriptHost = CreateObject("WScript.Shell")
+WinScriptHost.Run Chr(34) & "C:\XXX\canvashelper.bat" & Chr(34), 0
+Set WinScriptHost = Nothing
+```
+
+Replace `C:\XXX\canvashelper.bat` with a better path where you store a `bat` file which is used to launch the CanvasHelper.
+
+**That bat file must be in C drive.**
+
+3. Create that `C:\XXX\canvashelper.bat` file with the following content:
 
 ```cmd
 @echo off
@@ -105,7 +118,9 @@ cd D:\Project\CanvasHelper2
 uvicorn canvas_app:app --port 9283
 ```
 
-Make sure you change the directory to yours! Here my folder is `D:\Project\CanvasHelper2`.
+Replace `d:` and `D:\Project\CanvasHelper2` with your own directory.
+
+(If your clone directory is in C, then you don't need `d:` to enter drive D)
 
 After that, your system will run this script on startup.
 
