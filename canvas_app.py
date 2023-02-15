@@ -108,12 +108,16 @@ async def verify_config():
     headers = {
         'Authorization': f'Bearer {conf.get_conf()["bid"]}'
     }
+    url = conf.get_conf()["url"]
+    if url.find('http://') != 0 and url.find('https://') != 0:
+        # Invalid protocal
+        return JSONResponse(status_code=400, content={"message": "invalid URL"})
     res = requests.get(urllib.parse.urljoin(
-        conf.get_conf()["url"], 'api/v1/accounts'), headers=headers).status_code
+        url, 'api/v1/accounts'), headers=headers).status_code
     if res == 200:
         return JSONResponse(status_code=200, content={"message": "success"})
     else:
-        return JSONResponse(status_code=400, content={"message": "Invalid bid"})
+        return JSONResponse(status_code=400, content={"message": "verification failed"})
 
 
 @app.get("/courses", tags=["course"],
