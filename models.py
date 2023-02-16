@@ -31,3 +31,7 @@ class Course(BaseModel):
     maxshow: int = -1
     order: str = "normal"
     msg: str = ""
+
+class URL(BaseModel):
+    url: str
+    browser: str

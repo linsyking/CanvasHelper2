@@ -12,7 +12,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from config_mgr import ConfigMGR
 from canvas_mgr import CanvasMGR
 import urllib.parse
-from models import Position, Check, Course
+from models import Position, Check, Course, URL
 from fastapi.responses import JSONResponse
 from os import path, listdir, remove, mkdir
 import json
@@ -348,3 +348,17 @@ async def get_file(name: str):
         return FileResponse(f'./public/res/{name}')
     else:
         return JSONResponse(status_code=404, content={"message": "File not found"})
+
+@app.post("/browser", tags=["misc"],
+         summary="Open URL in web browser",
+         description="Open URL in web browser.")
+async def open_url(data: URL):
+    import webbrowser
+    try:
+        if data.browser:
+            webbrowser.get(data.browser).open(data.url)
+        else:
+            webbrowser.open(data.url)
+
+    except Exception as e:
+        return e
