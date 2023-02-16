@@ -28,7 +28,7 @@ configuration file/canvas backend, etc..
 
 
 app = FastAPI(
-    version='1.0.0', title='Canvas Helper', description='Canvas Helper API.')
+    version='1.0.1', title='Canvas Helper', description='Canvas Helper API.')
 
 app.add_middleware(
     CORSMiddleware,
@@ -368,6 +368,7 @@ async def open_url(data: URL):
             webbrowser.get(data.browser).open(data.url)
         else:
             webbrowser.open(data.url)
-
+        return JSONResponse(status_code=200, content={"message": "Opened"})
     except Exception as e:
-        return e
+        logging.warning(e)
+        return JSONResponse(status_code=400, content={"message": "Failed to open"})
