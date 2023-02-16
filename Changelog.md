@@ -5,6 +5,7 @@
 ### Features
 
 - Browser/Link Support(#7)
+- Auto Updater
 
 ### Fix
 
