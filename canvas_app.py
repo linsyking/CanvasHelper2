@@ -15,6 +15,7 @@ import urllib.parse
 from models import Position, Check, Course, URL
 from fastapi.responses import JSONResponse
 from os import path, listdir, remove, mkdir
+from updater import update
 import json
 
 
@@ -39,6 +40,8 @@ app.add_middleware(
 
 conf = ConfigMGR()
 
+# Self Update
+update()
 
 @app.get("/config",
          summary="Get the configuration file",
