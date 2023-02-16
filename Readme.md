@@ -4,10 +4,6 @@
 
 New generation of Canvas Helper backend. Web-based, support Linux, Windows and MacOS.
 
-## Demo
-
-You can go to [demo](https://yydbxx.cn/test/canvashelper/) to see the final result (using the [sample dashboard](https://github.com/linsyking/CanvasHelper2-dashboard)). That backend is hosted on our server but it didn't allow you to see the secrets.
-
 ## Requirements
 
 - Python >= 3.7
