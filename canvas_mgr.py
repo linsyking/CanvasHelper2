@@ -129,19 +129,19 @@ class apilink:
         self.g_tformat = g_tformat
         self.usercheck = user_check
 
-    def dump_span(self, style, id, text):
+    def dump_span(self, style, id, text, url: str = ""):
         if style == 1:
             # Positive
-            return f'<div class="single"><span class="checkbox positive" id="{id}"></span><span class="label">{text}</span></div>\n'
+            return f'<div class="single"><span class="checkbox positive" id="{id}"></span><span class="label" url="{url}">{text}</span></div>\n'
         elif style == 2:
             # wrong
-            return f'<div class="single"><span class="checkbox negative" id="{id}"></span><span class="label">{text}</span></div>\n'
+            return f'<div class="single"><span class="checkbox negative" id="{id}"></span><span class="label" url="{url}">{text}</span></div>\n'
         elif style == 3:
             # important
-            return f'<div class="single"><span class="checkbox important" id="{id}"></span><span class="label">{text}</span></div>\n'
+            return f'<div class="single"><span class="checkbox important" id="{id}"></span><span class="label" url="{url}">{text}</span></div>\n'
         else:
             # Not checked
-            return f'<div class="single"><span class="checkbox" id="{id}"></span><span class="label">{text}</span></div>\n'
+            return f'<div class="single"><span class="checkbox" id="{id}"></span><span class="label" url="{url}">{text}</span></div>\n'
 
     def num2ch(self, f: int):
         s = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
@@ -266,12 +266,12 @@ class apilink:
                 dttime = self.time_format_control(dttime, tformat)
                 check_type = self.get_check_status(f"ass{ass['id']}")
                 self.output += self.dump_span(
-                    check_type, f"ass{ass['id']}", f"{ass['name']}, Due: <b>{dttime}{submit_msg}</b>")
+                    check_type, f"ass{ass['id']}", f"{ass['name']}, Due: <b>{dttime}{submit_msg}</b>", ass['html_url'])
             else:
                 # No due date homework
                 check_type = self.get_check_status(f"ass{ass['id']}")
                 self.output += self.dump_span(check_type,
-                                              f"ass{ass['id']}", f"{ass['name']}{submit_msg}")
+                                              f"ass{ass['id']}", f"{ass['name']}{submit_msg}", ass['html_url'])
 
     def collect_announcement(self):
         self.cstate = 'Announcement'
@@ -296,7 +296,7 @@ class apilink:
             maxnum -= 1
             check_type = self.get_check_status(f"ann{an['id']}")
             self.output += self.dump_span(check_type,
-                                          f"ann{an['id']}", an['title'])
+                                          f"ann{an['id']}", an['title'], an['html_url'])
 
     def collect_discussion(self):
         self.cstate = 'Discussion'
@@ -326,7 +326,7 @@ class apilink:
             maxnum -= 1
             check_type = self.get_check_status(f"dis{d['id']}")
             self.output += self.dump_span(check_type,
-                                          f"dis{d['id']}", d['title'])
+                                          f"dis{d['id']}", d['title'], d['html_url'])
 
     def print_out(self):
         if self.output:
