@@ -17,6 +17,7 @@ from fastapi.responses import JSONResponse
 from os import path, listdir, remove, mkdir
 from updater import update
 import json
+import logging
 
 
 '''
@@ -36,6 +37,12 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+)
+
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="[%(levelname)s] %(message)s"
 )
 
 conf = ConfigMGR()
