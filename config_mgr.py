@@ -3,7 +3,6 @@
 @Author: King
 @Date: 2023-01-04 09:17:45
 @Email: linsy_king@sjtu.edu.cn
-@Url: https://yydbxx.cn
 '''
 
 import json

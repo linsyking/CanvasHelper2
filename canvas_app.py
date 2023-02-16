@@ -3,7 +3,6 @@
 @Author: King
 @Date: 2023-01-04 20:22:05
 @Email: linsy_king@sjtu.edu.cn
-@Url: https://yydbxx.cn
 '''
 
 from fastapi import FastAPI, Request, UploadFile
