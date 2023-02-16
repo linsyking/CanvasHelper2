@@ -17,14 +17,17 @@ Update git repo automatically
 
 
 def update():
-    repo = git.Repo(os.path.dirname(__file__))
-    current = repo.head.commit
-    if current != repo.head.commit:
-        logging.info(f"Found new commit: {repo.head.commit}, pulling")
-        repo.remotes.origin.pull()
-    else:
+    try:
+        repo = git.Repo(os.path.dirname(__file__))
+        current = repo.head.commit
         logging.info(f"Current version: {current}")
-        logging.info("No updates found.")
+        repo.remotes.origin.pull()
+        new = repo.head.commit
+        if current != new:
+            logging.info(f'Updated to {new}')
+    except Exception as e:
+        logging.error(e)
+        logging.error('Cannot update')
 
 if __name__ == "__main__":
     update()
