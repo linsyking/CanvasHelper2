@@ -3,7 +3,6 @@
 @Author: King
 @Date: 2023-01-04 21:24:24
 @Email: linsy_king@sjtu.edu.cn
-@Url: https://yydbxx.cn
 '''
 
 from pydantic import BaseModel, Field
