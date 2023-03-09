@@ -58,13 +58,13 @@ If you need to expose the port, you can add option `--host 0.0.0.0`.
 
 ## Configure CanvasHelper
 
-If you want to use the frontend on our server, go to: [here](https://yydbxx.cn/canvashelper/). (Site might be changed in the future)
+If you want to use the frontend on our server, go to: [here](https://canvashelper2.web.app/canvashelper/). (Site might be changed in the future)
 
 Otherwise, go to [CanvasHelper2-conf](https://github.com/linsyking/CanvasHelper2-conf) for more details.
 
 ## Host static files
 
-If you want to see the result without hosting HTML files, you can directly go to [here](https://yydbxx.cn/canvashelper/dashboard/).
+If you want to see the result without hosting HTML files, you can directly go to [here](https://canvashelper2.web.app/).
 
 You can use any http server you like to host the static html file.
 
@@ -84,7 +84,7 @@ Now go to page <http://localhost:9282> to see the result!
 
 Subscribe template wallpaper: <https://steamcommunity.com/sharedfiles/filedetails/?id=2913474561>.
 
-After you started the backend locally, it will redirect to the [here](https://yydbxx.cn/canvashelper/dashboard/). You can also change it to your local frontend.
+After you started the backend locally, it will redirect to the [here](https://canvashelper2.web.app/). You can also change it to your local frontend.
 
 To start the backend on startup, you can do the following:
 
