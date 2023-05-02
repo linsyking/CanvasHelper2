@@ -15,7 +15,7 @@
 1. 根据[文档](https://github.com/linsyking/CanvasHelper2#run-backend)，在`9283`端口运行后端。
 2. 访问<https://canvashelper2.web.app/canvashelper/>来配置你的CanvasHelper
 3. 访问<https://canvashelper2.web.app/>预览结果
-4. 使用[插件](#部署到桌面)在桌面上部署Canvas Helper
+4. 使用[插件](https://github.com/linsyking/CanvasHelper2#部署到桌面)在桌面上部署Canvas Helper
 
 ## 开发流程
 
