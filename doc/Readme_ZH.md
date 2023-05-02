@@ -67,11 +67,11 @@ uvicorn canvas_app:app --reload
 
 如果你想在不托管HTML文件的情况下预览结果，你可以直接访问[这里](https://canvashelper2.web.app/)。
 
-您可以使用任何您喜欢的http服务器来托管静态html文件。
+你可以使用任何您喜欢的http服务器来托管静态html文件。
 
 示例dashboard前端位于<https://github.com/linsyking/CanvasHelper2-dashboard>
 
-您可以克隆该存储库并通过
+你可以克隆该存储库并通过
 
 ```bash
 python3 -m http.server 9282
@@ -123,7 +123,7 @@ uvicorn canvas_app:app --port 9283
 
 之后，系统将在启动时运行此脚本。
 
-**注意:壁纸引擎中的一些功能不支持，包括滚动**
+**注意:壁纸引擎中的一些功能不被支持，包括滚动**
 
 ### KDE Wallpaper
 
