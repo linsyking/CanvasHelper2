@@ -12,10 +12,10 @@
 
 如果你只想在本地运行后端，在我们的服务器上使用前端，请执行以下操作:
 
-1. 根据[文档](https://github.com/linsyking/CanvasHelper2#run-backend)，在`9283`端口运行后端。
+1. 根据[文档](https://github.com/linsyking/CanvasHelper2/blob/main/doc/Readme_ZH.md#run-backend)，在`9283`端口运行后端。
 2. 访问<https://canvashelper2.web.app/canvashelper/>来配置你的CanvasHelper
 3. 访问<https://canvashelper2.web.app/>预览结果
-4. 使用[插件](https://github.com/linsyking/CanvasHelper2/#部署到桌面)在桌面上部署Canvas Helper
+4. 使用[插件](https://github.com/linsyking/CanvasHelper2/blob/main/doc/Readme_ZH.md#部署到桌面)在桌面上部署Canvas Helper
 
 ## 开发流程
 
@@ -69,13 +69,15 @@ uvicorn canvas_app:app --reload
 
 您可以使用任何您喜欢的http服务器来托管静态html文件。
 
-示例仪表板前端位于<https://github.com/linsyking/CanvasHelper2-dashboard>
+示例dashboard前端位于<https://github.com/linsyking/CanvasHelper2-dashboard>
 
 您可以克隆该存储库并通过
 
 ```bash
 python3 -m http.server 9282
 ```
+
+来托管这些文件。
 
 现在，你可以访问<http://localhost:9282>页面查看结果。
 
