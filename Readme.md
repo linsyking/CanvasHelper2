@@ -15,6 +15,7 @@ If you only want to run the backend on your machine and use the frontend on our 
 1. Follow [documentation](https://github.com/linsyking/CanvasHelper2#run-backend), run the backend at port `9283`
 2. Go to <https://canvashelper2.web.app/canvashelper/> to configure your CanvasHelper
 3. Go to <https://canvashelper2.web.app/> to see the final result
+4. Deploy Canvas Helper on your desktop with [wiget](#use-canvashelper-in)
 
 ## Dev Workflow
 
@@ -62,7 +63,7 @@ If you want to use the frontend on our server, go to: [here](https://canvashelpe
 
 Otherwise, go to [CanvasHelper2-conf](https://github.com/linsyking/CanvasHelper2-conf) for more details.
 
-## Host static files
+## Preview the result
 
 If you want to see the result without hosting HTML files, you can directly go to [here](https://canvashelper2.web.app/).
 

@@ -2,159 +2,158 @@
 
 [![build](https://github.com/linsyking/CanvasHelper2/actions/workflows/build.yml/badge.svg)](https://github.com/linsyking/CanvasHelper2/actions/workflows/build.yml)
 
-新一代canvas helper后端。
-基于网页，支持Windows, Macos, linux。
-
-## 目录
-
-- [要求](#要求)
-- [部署](#部署)
-- [常见问题](#常见问题)
-- [开发](#开发)
+新一代的Canvas Helper后端。基于网页，支持Linux, Windows和MacOS。
 
 ## 要求
 
 - Python >= 3.7
 
-## 部署
+## 工作流程
 
-1. [运行后端](#运行后端)
-2. [打开前端，进行配置](#配置canvashelper)
-3. [网页上查看效果](#预览效果)
+如果你只想在本地运行后端，在我们的服务器上使用前端，请执行以下操作:
 
-### 运行后端
+1. 根据[文档](https://github.com/linsyking/CanvasHelper2#run-backend)，在`9283`端口运行后端。
+2. 访问<https://canvashelper2.web.app/canvashelper/>来配置你的CanvasHelper
+3. 访问<https://canvashelper2.web.app/>预览结果
+4. 使用[插件](#部署到桌面)在桌面上部署Canvas Helper
 
-首先，克隆本仓库并进入仓库：
+## 开发流程
 
-    ```bash
-    git clone https://github.com/linsyking/CanvasHelper2.git
+如果你想使用自己的前端或为这个项目做出贡献，你主要需要做3个步骤:
 
-    cd CanvasHelper2
-    ```
+1. 运行后端
+2. 运行`CanvasHelper2-conf`，在浏览器中配置CanvasHelper
+3. 运行HTTP服务器来托管静态HTML文件(或开发自己的dashboard前端)
 
-下载依赖项：
+## 运行后端
 
-    ```bash
-    pip3 install -r requirements.txt
-    ```
+首先，克隆这个仓库:
 
-如果你不想改变任何设置，（例如 CORS），你可以直接运行（如果你想使用我们服务器上的前端，你必须使用`9283`端口）：
+```bash
+git clone https://github.com/linsyking/CanvasHelper2.git
 
-    ```bash
-    uvicorn canvas_app:app --port 9283
-    ```
+cd CanvasHelper2
+```
 
-### 配置CanvasHelper
+安装依赖项:
 
-如果你想使用我们的服务器，可以访问[here](https://canvashelper2.web.app/canvashelper/)。（网站位置未来可能会变动）
+```bash
+pip3 install -r requirements.txt
+```
 
-如果你想使用自己的前端，你可以参照[CanvasHelper2-conf](https://github.com/linsyking/CanvasHelper2-conf)来获取更多信息
+如果你不想改变任何设置(如CORS)，你可以直接运行以下代码:(如果你想使用我们的服务器上的前端，你必须使用`9283`端口)
 
-### 预览效果
+```bash
+uvicorn canvas_app:app --port 9283
+```
 
-如果你想在不托管HTML文件的前提下预览效果，你可以直接访问[here](https://canvashelper2.web.app/)。
+开发者可能需要使用:
 
-如果你想在本地查看dashboard，你可以使用任意端口托管静态文件
+```bash
+uvicorn canvas_app:app --reload
+```
 
-一个dashboard样例在<https://github.com/linsyking/CanvasHelper2-dashboard>.
+在脚本被修改时自动重新加载API。
 
-你可以克隆此仓库并使用：
+如果你需要公开端口，你可以添加选项`--host 0.0.0.0`。
 
-    ```bash
-    python3 -m http.server 9282
-    ```
+## 配置CanvasHelper
 
-来托管静态html文件，并在<http://localhost:9282>查看结果
+如果您想在我们的服务器上使用前端，请访问: [这里](https://canvashelper2.web.app/canvashelper/)。(网站未来可能会有变动)
 
-### 部署到桌面
+如果你想在本地运行前端，请访问[CanvasHelper2-conf](https://github.com/linsyking/CanvasHelper2-conf)获取更多详细信息。
 
-#### Wallpaper Engine
+## 预览结果
 
-订阅壁纸：<https://steamcommunity.com/sharedfiles/filedetails/?id=2913474561>
+如果你想在不托管HTML文件的情况下预览结果，你可以直接访问[这里](https://canvashelper2.web.app/)。
 
-在本地运行后端后，它将会重定向到[here](https://canvashelper2.web.app/)。你也可以把它改成你本地的前端
+您可以使用任何您喜欢的http服务器来托管静态html文件。
 
-如果你想在开始时就运行后端，你可以参考以下步骤：
+示例仪表板前端位于<https://github.com/linsyking/CanvasHelper2-dashboard>
 
-1. Win+R, 输入`shell:startup`
-2. 在打开的窗口中创建一个叫做`canvashelper.vbs`的文件，它的内容如下：
+您可以克隆该存储库并通过
 
-    ```vbs
-    Dim WinScriptHost
-    Set WinScriptHost = CreateObject("WScript.Shell")
-    WinScriptHost.Run Chr(34) & "C:\XXX\canvashelper.bat" & Chr(34), 0
-    Set WinScriptHost = Nothing
-    ```
+```bash
+python3 -m http.server 9282
+```
 
-    将 `C:\XXX\canvashelper.bat` 替换成你用来存储启动CanvasHelper脚本的路径
+现在，你可以访问<http://localhost:9282>页面查看结果。
 
-    **这个脚本必须在C盘中**
+## 部署到桌面
 
-3. 用以下内容创建`C:\XXX\canvashelper.bat`脚本：
+### Wallpaper Engine
 
-    ```cmd
-    @echo off
+订阅模板壁纸: <https://steamcommunity.com/sharedfiles/filedetails/?id=2913474561>
 
-    d:
-    cd D:\Project\CanvasHelper2
-    uvicorn canvas_app:app --port 9283
-    ```
+在本地启动后端后，它将重定向到[这里](https://canvashelper2.web.app/)。您也可以将其更改为本地前端。
 
-    将`d:`和`D:\Project\CanvasHelper2`替换成你自己的目录
+要在启动时自动运行后端，您可以执行以下操作:
 
-    （如果你在C盘中克隆本仓库，你不需要使用`d:`进入D盘）
+1. Win+R，输入“shell:startup”
+2. 在打开的窗口中，创建一个名为canvashelper.vbs的文件。
 
-    此后，你的系统将会在开机时自动运行此脚本
+其内容应该是这样的:
 
-    **注意：有些特性在wallpaper engine中不能很好的支持，包括滚动**
+```vbs
+Dim WinScriptHost
+Set WinScriptHost = CreateObject("WScript.Shell")
+WinScriptHost.Run Chr(34) & "C:\XXX\canvashelper.bat" & Chr(34), 0
+Set WinScriptHost = Nothing
+```
 
-#### KDE Wallpaper
+将`C:\XXX\ CanvasHelper. bat`替换为存放用于启动CanvasHelper的`bat`文件的路径。
 
-1. 下载[wallpaper-engine-kde-plugin](https://github.com/catsout/wallpaper-engine-kde-plugin).
-2. 下载canvas壁纸 <https://steamcommunity.com/sharedfiles/filedetails/?id=2913474561>。
-3. 你应该能够看到壁纸
-4. 添加开机脚本来运行后端
+**该bat脚本必须在C盘中**
 
-**注意：同样不支持滚动**
+3.创建包含以下内容的`C:\XXX\canvashelper.bat`文件:
 
-效果：
+```cmd
+@echo off
+
+d:
+cd D:\Project\CanvasHelper2
+uvicorn canvas_app:app --port 9283
+```
+
+将`d:`和`D:\Project\CanvasHelper2`替换为你自己的目录。
+
+(如果你的克隆的仓库在C盘下，那么你不需要' d: '来进入D盘)
+
+之后，系统将在启动时运行此脚本。
+
+**注意:壁纸引擎中的一些功能不支持，包括滚动**
+
+### KDE Wallpaper
+
+1. 安装[wallpaper-engine-kde-plugin](https://github.com/catsout/wallpaper-engine-kde-plugin)。
+2. 下载canvas wallpaper <https://steamcommunity.com/sharedfiles/filedetails/?id=2913474561>
+3. 你应该能看到墙纸。
+4. 添加一个自启动脚本来运行后端
+
+**注: 同样不支持滚动**
+
+结果:
 
 ![demo](https://user-images.githubusercontent.com/49303317/210978732-68cefd73-75df-4013-a7cb-2010f16ec7dd.png)
 
-#### KDE Widget
+### KDE Widget
 
-（另一个前端）
+(另一个dashboard前端)
 
 *To-Do*
 
-## 常见问题
+## 常见问题解答
 
-- CanvasHelper2和CanvasHelper1有什么区别
+- CanvasHelper和CanvasHelper 2的区别是什么?
 
->CanvasHelper1是中心化的，而CanvasHelper2不是。它完全是本地的，所以你不需要连接到我们的服务器来使用CanvasHelper。
->此外，CanvasHelper2提供了一个方便的web界面来配置课程。
->CanvasHelper2将前端和后端分开，这样你就可以在任何操作系统/桌面环境下开发自己的dashboard前端。
+> CanvasHelper 1是中心化的，而CanvasHelper 2不是。它完全是本地的，所以你不需要连接到我们的服务器来使用CanvasHelper。
+> 此外，CanvasHelper 2提供了一个方便的web界面来配置课程。
+> CanvasHelper 2将前端和后端分开，这样你就可以在任何操作系统/桌面环境下开发自己的仪表板前端。
 
-- CanvasHelper后端，前端，dashboard的关系?
+- Canvas Helper后端，前端和仪表板之间的关系是什么?
 
-> 后端提供了一些API供前端和dashboard调用；前端使用本地的API来配置Canvas Helper。dashboard同样调用本地的后端获取配置文件。
+> 后端提供了几个api供前端和仪表板调用;前端使用本地api来配置Canvas Helper。仪表板还调用本地后端来获取配置。
 
-- 我必须使用样板dashboard吗？
+- 我一定要使用样本dashboard吗？
 
-> 不，你可以开发你自己的dashboard。样板dashboard使用后端的html输出并在一个可以拖动的组件中展示。
-
-## 开发
-
-如果你想创建自己的前端或者支持本项目，你需要做一下三个步骤：
-
-1. 运行后端
-2. 运行`CanvasHelper2-conf`并在浏览器中配置Canvas Helper
-3. 运行一个HTTP服务器以托管静态HTML文件（或者开发你自己的dashboard）
-
-对于开发者，你可能需要使用以下代码在修改脚本后来重新加载api：
-
-    ```bash
-    uvicorn canvas_app:app --reload
-    ```
-
-如果你想要公开端口，你可以增加选项`--host 0.0.0.0`。
+> 不一定。你可以开发你自己的dashboard前端。这个样本前端使用后端的HTML输出并在一个可拖拽的组建中展示。
