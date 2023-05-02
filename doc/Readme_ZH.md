@@ -146,13 +146,13 @@ uvicorn canvas_app:app --port 9283
 
 - CanvasHelper和CanvasHelper 2的区别是什么?
 
-> CanvasHelper 1是中心化的，而CanvasHelper 2不是。它完全是本地的，所以你不需要连接到我们的服务器来使用CanvasHelper。
-> 此外，CanvasHelper 2提供了一个方便的web界面来配置课程。
-> CanvasHelper 2将前端和后端分开，这样你就可以在任何操作系统/桌面环境下开发自己的仪表板前端。
+> CanvasHelper1是中心化的，而CanvasHelper 2不是。它完全是本地的，所以你不需要连接到我们的服务器来使用CanvasHelper。
+> 此外，CanvasHelper2提供了一个方便的web界面来配置课程。
+> CanvasHelper2将前端和后端分开，这样你就可以在任何操作系统/桌面环境下开发自己的dashboard前端。
 
-- Canvas Helper后端，前端和仪表板之间的关系是什么?
+- Canvas Helper后端，前端和dashboard之间的关系是什么?
 
-> 后端提供了几个api供前端和仪表板调用;前端使用本地api来配置Canvas Helper。仪表板还调用本地后端来获取配置。
+> 后端提供了几个api供前端和dashboard调用;前端使用本地api来配置Canvas Helper。dashboard还调用本地后端来获取配置。
 
 - 我一定要使用样本dashboard吗？
 
