@@ -12,3 +12,4 @@
 - Cannot read some courses (#4)
 - Incorrect encoding of the configuratrion file (#4)
 - Documentation support (#4)
+- Add Chinese version and reorganize the readme file
