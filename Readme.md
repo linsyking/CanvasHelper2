@@ -4,7 +4,7 @@
 
 New generation of Canvas Helper backend. Web-based, support Linux, Windows and MacOS.
 
-You can view the Chinese version in [here](https://github.com/linsyking/CanvasHelper2/blob/main/doc/Readme_ZH.md)
+[Chinese Translation](doc/Readme_ZH.md)
 
 ## Requirements
 
