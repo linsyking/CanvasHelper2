@@ -127,7 +127,6 @@ async def verify_config():
     url = conf.get_conf()["url"]
     if url.find("http://") != 0 and url.find("https://") != 0:
         # Invalid protocal
-        # return JSONResponse(status_code=400, content={"message": "invalid URL"})
         url="https://"+url
         conf.set_key_value("url",url)
     res = requests.get(
