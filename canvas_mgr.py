@@ -58,7 +58,7 @@ class CanvasMGR:
             json.dump(obj, f, ensure_ascii=False, indent=4)
         return self.g_out[:-1]
 
-    def print_own(self, mystr):
+    def print_own(self, mystr): #change the value of self.g_out
         self.g_out += mystr + "\n"
 
     def get_response(self):
