@@ -437,6 +437,7 @@ async def open_url(data: URL):
         if data.browser:
             webbrowser.get(data.browser).open(data.url)
         else:
+            webbrowser.get()
             webbrowser.open(data.url)
         return JSONResponse(status_code=200, content={"message": "Opened"})
     except Exception as e:
