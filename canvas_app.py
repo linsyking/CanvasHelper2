@@ -127,7 +127,8 @@ async def verify_config():
     url = conf.get_conf()["url"]
     if url.find("http://") != 0 and url.find("https://") != 0:
         # Invalid protocal
-        return JSONResponse(status_code=400, content={"message": "invalid URL"})
+        url="https://"+url
+        conf.set_key_value("url",url)
     res = requests.get(
         urllib.parse.urljoin(url, "api/v1/accounts"), headers=headers
     ).status_code
@@ -434,9 +435,11 @@ async def open_url(data: URL):
 
     try:
         if data.browser:
-            webbrowser.get(data.browser).open(data.url)
+            res = webbrowser.get(data.browser).open(data.url)
         else:
-            webbrowser.open(data.url)
+            res = webbrowser.open(data.url)
+        if not res:
+            raise Exception("Cannot find web browser")
         return JSONResponse(status_code=200, content={"message": "Opened"})
     except Exception as e:
         logging.warning(e)
