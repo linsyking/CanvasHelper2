@@ -435,9 +435,11 @@ async def open_url(data: URL):
 
     try:
         if data.browser:
-            webbrowser.get(data.browser).open(data.url)
+            res = webbrowser.get(data.browser).open(data.url)
         else:
-            webbrowser.open(data.url)
+            res = webbrowser.open(data.url)
+        if not res:
+            raise Exception("Cannot find web browser")
         return JSONResponse(status_code=200, content={"message": "Opened"})
     except Exception as e:
         logging.warning(e)
