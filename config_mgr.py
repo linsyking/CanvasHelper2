@@ -26,7 +26,7 @@ class ConfigMGR:
             self.write_conf()
         else:
             self.force_read()
-            if self.configuration is None or self.configuration["version"] != 1:
+            if self.configuration["version"] != 1:
                 raise Exception("Error: Configuration file version mismatch!")
 
     def write_conf(self):
@@ -41,9 +41,8 @@ class ConfigMGR:
         return self.configuration
 
     def remove_key(self, key: str):
-        if self.configuration is not None:
-            self.configuration.pop(key)
-            self.write_conf()
+        self.configuration.pop(key)
+        self.write_conf()
 
     def force_read(self):
         """
@@ -57,9 +56,8 @@ class ConfigMGR:
             raise Exception("No configuration found")
 
     def set_key_value(self, key, value):
-        if self.configuration is not None:
-            self.configuration[key] = value
-            self.write_conf()
+        self.configuration[key] = value
+        self.write_conf()
 
     def update_conf(self, conf):
         """
@@ -69,5 +67,4 @@ class ConfigMGR:
         self.write_conf()
 
     def set_wallpaper_path(self, path):
-        if self.configuration is not None:
-            self.configuration["wallpaper_path"] = path
+        self.configuration["wallpaper_path"] = path

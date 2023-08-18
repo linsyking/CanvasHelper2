@@ -18,7 +18,7 @@ class CanvasMGR:
     g_tformat = "relative"
     usercheck = []
     bid = ""
-    ucommand = {}
+    ucommand = ""
     url = ""
     output_mode = "html"
 
@@ -217,8 +217,6 @@ class apilink:
         self.add_custom_info()
 
     def add_custom_info(self):
-        if self.output == None:
-            self.output=""
         if "msg" in self.other and self.other["msg"] != "":
             # Add custom message
             self.output += f'<p>{self.other["msg"]}</p>\n'
