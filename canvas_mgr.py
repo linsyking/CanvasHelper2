@@ -18,7 +18,7 @@ class CanvasMGR:
     g_tformat = "relative"
     usercheck = []
     bid = ""
-    ucommand = ""
+    ucommand = {}
     url = ""
     output_mode = "html"
 
@@ -121,7 +121,7 @@ class apilink:
         self.announcement = f"{url}/api/v1/courses/{self.course}/discussion_topics?only_announcements=true"
         self.discussion = f"{url}/api/v1/courses/{self.course}/discussion_topics?plain_messages=true&exclude_assignment_descriptions=true&exclude_context_module_locked_topics=true&order_by=recent_activity&include=all_dates&per_page=50"
         self.other = course
-        self.output = None
+        self.output = ""
         self.now = datetime.now()
         self.g_tformat = g_tformat
         self.usercheck = user_check
