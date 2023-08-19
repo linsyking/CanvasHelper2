@@ -14,3 +14,5 @@
 - Documentation support (#4)
 - Add Chinese version and reorganize the readme file
 - Fix prefix error(#5)
+- Specify the variable type
+
