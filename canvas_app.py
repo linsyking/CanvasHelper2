@@ -12,7 +12,7 @@ from os import path, listdir, remove, mkdir
 from updater import update
 import json
 import logging
-from typing import Iterable, List, Dict
+from typing import Iterable, List, Dict, Sized
 
 
 """
@@ -259,6 +259,8 @@ async def modify_course(index: int, course: Course):
     if "courses" not in conf.get_conf():
         return JSONResponse(status_code=404, content={"message": "Courses not found"})
     courses = conf.get_conf()["courses"]
+    if not isinstance(courses,List):
+        return JSONResponse(status_code=404, content={"message": "Wrong Type"})
     if index >= len(courses) or index < 0:
         return JSONResponse(status_code=404, content={"message": "Course not found"})
     if course.type not in ["ann", "ass", "dis"]:
