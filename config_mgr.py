@@ -15,7 +15,7 @@ It will include:
 
 
 class ConfigMGR:
-    configuration = None
+    configuration = {}
 
     def __init__(self):
         if not path.exists("user_conf.json"):

@@ -12,6 +12,7 @@ from os import path, listdir, remove, mkdir
 from updater import update
 import json
 import logging
+from typing import List
 
 
 """
@@ -124,7 +125,7 @@ async def verify_config():
     import requests
 
     headers = {"Authorization": f'Bearer {conf.get_conf()["bid"]}'}
-    url = conf.get_conf()["url"]
+    url = str(conf.get_conf()["url"])
     if url.find("http://") != 0 and url.find("https://") != 0:
         # Invalid protocal
         url="https://"+url
@@ -165,7 +166,7 @@ async def get_all_canvas_courses():
     headers = {"Authorization": f'Bearer {conf.get_conf()["bid"]}'}
     res = requests.get(
         urllib.parse.urljoin(
-            conf.get_conf()["url"], "api/v1/dashboard/dashboard_cards"
+            str(conf.get_conf()["url"]), "api/v1/dashboard/dashboard_cards"
         ),
         headers=headers,
     ).text
@@ -183,11 +184,14 @@ async def delete_course(course_id: int):
         return JSONResponse(status_code=404, content={"message": "Courses not found"})
     courses = conf.get_conf()["courses"]
     all_courses = []
-    for course in courses:
-        if course["course_id"] != course_id:
-            all_courses.append(course)
-    conf.set_key_value("courses", all_courses)
-    return JSONResponse(status_code=200, content={"message": "success"})
+    if not isinstance(courses,List):
+        return JSONResponse(status_code=404, content={"message":"Courses type should be list."})
+    else:
+        for course in courses:
+            if course["course_id"] != course_id:
+                all_courses.append(course)
+        conf.set_key_value("courses", all_courses)
+        return JSONResponse(status_code=200, content={"message": "success"})
 
 
 @app.delete(
@@ -201,11 +205,14 @@ async def delete_course_item(course_id: int, type: str):
         return JSONResponse(status_code=404, content={"message": "Courses not found"})
     courses = conf.get_conf()["courses"]
     all_courses = []
-    for course in courses:
-        if course["course_id"] != course_id or course["type"] != type:
-            all_courses.append(course)
-    conf.set_key_value("courses", all_courses)
-    return JSONResponse(status_code=200, content={"message": "success"})
+    if not isinstance(courses,List):
+        JSONResponse(status_code=404, content={"message":"Courses type should be list"})
+    else:
+        for course in courses:
+            if course["course_id"] != course_id or course["type"] != type:
+                all_courses.append(course)
+        conf.set_key_value("courses", all_courses)
+        return JSONResponse(status_code=200, content={"message": "success"})
 
 
 @app.post(
@@ -229,14 +236,17 @@ async def create_course(course: Course):
     else:
         ori_courses = conf.get_conf()["courses"]
     # Check if the course already exists
-    for c in ori_courses:
-        if c["course_id"] == course.id and c["type"] == course.type:
-            return JSONResponse(
-                status_code=400, content={"message": "Course already exists"}
-            )
-    ori_courses.append(course_info)
-    conf.set_key_value("courses", ori_courses)
-    return JSONResponse(status_code=200, content={"message": "success"})
+    if not isinstance(ori_courses,List):
+        JSONResponse(status_code=404, content={"message": "Courses type should be list."})
+    else:
+        for c in ori_courses:
+            if c["course_id"] == course.id and c["type"] == course.type:
+                return JSONResponse(
+                    status_code=400, content={"message": "Course already exists"}
+                )
+        ori_courses.append(course_info)
+        conf.set_key_value("courses", ori_courses)
+        return JSONResponse(status_code=200, content={"message": "success"})
 
 
 @app.put(
@@ -249,6 +259,8 @@ async def modify_course(index: int, course: Course):
     if "courses" not in conf.get_conf():
         return JSONResponse(status_code=404, content={"message": "Courses not found"})
     courses = conf.get_conf()["courses"]
+    if not isinstance(courses,List):
+        return JSONResponse(status_code=404, content={"message": "Courses type should be list"})
     if index >= len(courses) or index < 0:
         return JSONResponse(status_code=404, content={"message": "Course not found"})
     if course.type not in ["ann", "ass", "dis"]:
@@ -325,6 +337,8 @@ async def set_check(name: str, check: Check):
     all_checks = [{"name": name, "type": check.type}]
     if "checks" in conf.get_conf():
         ori_checks = conf.get_conf()["checks"]
+        if not isinstance(ori_checks,List):
+            return JSONResponse(status_code=404, content={"message": "Courses type should be list"})
         for ori_check in ori_checks:
             if ori_check["name"] != name:
                 all_checks.append(ori_check)

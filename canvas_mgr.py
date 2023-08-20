@@ -18,7 +18,7 @@ class CanvasMGR:
     g_tformat = "relative"
     usercheck = []
     bid = ""
-    ucommand = ""
+    ucommand = {}
     url = ""
     output_mode = "html"
 
@@ -52,13 +52,18 @@ class CanvasMGR:
             self.g_tformat = self.ucommand["timeformat"]
 
     def dump_out(self):
-        # Caching
-        obj = {"html": "<i>(Cached file)</i>\n" + self.g_out[:-1], "json": "{}"}
+        """
+        Dump HTML output
+        """
+        obj = {"html": self.g_out[:-1], "json": "{}"}
         with open("./canvas/cache.json", "w", encoding="utf-8", errors="ignore") as f:
             json.dump(obj, f, ensure_ascii=False, indent=4)
         return self.g_out[:-1]
 
     def print_own(self, mystr):
+        """
+        Change the value of self.g_out
+        """
         self.g_out += mystr + "\n"
 
     def get_response(self):
@@ -121,7 +126,7 @@ class apilink:
         self.announcement = f"{url}/api/v1/courses/{self.course}/discussion_topics?only_announcements=true"
         self.discussion = f"{url}/api/v1/courses/{self.course}/discussion_topics?plain_messages=true&exclude_assignment_descriptions=true&exclude_context_module_locked_topics=true&order_by=recent_activity&include=all_dates&per_page=50"
         self.other = course
-        self.output = None
+        self.output = ""
         self.now = datetime.now()
         self.g_tformat = g_tformat
         self.usercheck = user_check
