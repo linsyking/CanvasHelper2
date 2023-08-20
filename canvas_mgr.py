@@ -52,14 +52,18 @@ class CanvasMGR:
             self.g_tformat = self.ucommand["timeformat"]
 
     def dump_out(self):
-        # Caching
-        obj = {"html": "<i>(Cached file)</i>\n" + self.g_out[:-1], "json": "{}"}
+        """
+        Dump HTML output
+        """
+        obj = {"html": self.g_out[:-1], "json": "{}"}
         with open("./canvas/cache.json", "w", encoding="utf-8", errors="ignore") as f:
             json.dump(obj, f, ensure_ascii=False, indent=4)
         return self.g_out[:-1]
 
-    #change the value of self.g_out
     def print_own(self, mystr):
+        """
+        Change the value of self.g_out
+        """
         self.g_out += mystr + "\n"
 
     def get_response(self):
