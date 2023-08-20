@@ -13,6 +13,21 @@ from updater import update
 import json
 import logging
 from typing import List
+from werkzeug.utils import secure_filename
+
+"""
+Local function
+"""
+
+ALLOWED_EXTENSION = {"png","jpg","jpeg","gif","svg","mp4","mkv","mov","m4v","avi","wmv","webm"}
+
+# INFO: Safety check for file
+def check_extension(filename):
+    if "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSION:
+        safe_filename =secure_filename(filename)
+        return safe_filename
+    else:
+        return JSONResponse(status_code=404, content={"message": "Illegal file type"})
 
 
 """
