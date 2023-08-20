@@ -22,13 +22,12 @@ Local function
 ALLOWED_EXTENSION = {"png","jpg","jpeg","gif","svg","mp4","mkv","mov","m4v","avi","wmv","webm"}
 
 # INFO: Safety check for file
-def check_extension(filename):
+def check_file(filename):
     if "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSION:
         safe_filename =secure_filename(filename)
         return safe_filename
     else:
-        return JSONResponse(status_code=404, content={"message": "Illegal file type"})
-
+        return "Illegal"
 
 """
 Canvas App
@@ -407,6 +406,11 @@ async def update_position(position: Position):
 async def upload_file(file: UploadFile):
     if not path.exists("./public/res"):
         mkdir("./public/res")
+    tmp=check_file(file.filename)
+    if tmp == "Illegal":
+        return JSONResponse(status_code=404, content={"message": "Illegal file name"})
+    else:
+        file.filename=tmp
     with open(f"./public/res/{file.filename}", "wb") as out_file:
         out_file.write(file.file.read())
     return JSONResponse(status_code=200, content={"message": "success"})
@@ -419,6 +423,9 @@ async def upload_file(file: UploadFile):
     description="Delete file in public/res.",
 )
 async def delete_file(name: str):
+    tmp=check_file(name)
+    if tmp == "Illegal" or name != tmp:
+        return JSONResponse(status_code=404, content={"message": "Illegal file name"})
     if path.exists(f"./public/res/{name}"):
         remove(f"./public/res/{name}")
         return JSONResponse(status_code=200, content={"message": "success"})
