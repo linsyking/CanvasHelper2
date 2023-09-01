@@ -22,9 +22,11 @@ ALLOWED_EXTENSION = {"png","jpg","jpeg","gif","svg","mp4","mkv","mov","m4v","avi
 
 # INFO: Safety check for file
 def check_file(filename):
-    base_path = './public/res'
+    base_path = '/public/res/'
     fullPath = path.normpath(path.join(base_path,filename))
+    print(fullPath)
     if not fullPath.startswith(base_path):
+        print("111")
         return "Illegal"
     else:
         return filename
@@ -409,8 +411,6 @@ async def upload_file(file: UploadFile):
     tmp=check_file(file.filename)
     if tmp == "Illegal":
         return JSONResponse(status_code=404, content={"message": "Illegal file name"})
-    else:
-        file.filename=tmp
     with open(f"./public/res/{file.filename}", "wb") as out_file:
         out_file.write(file.file.read())
     return JSONResponse(status_code=200, content={"message": "success"})
@@ -424,7 +424,7 @@ async def upload_file(file: UploadFile):
 )
 async def delete_file(name: str):
     tmp=check_file(name)
-    if tmp == "Illegal" or name != tmp:
+    if tmp == "Illegal":
         return JSONResponse(status_code=404, content={"message": "Illegal file name"})
     if path.exists(f"./public/res/{name}"):
         remove(f"./public/res/{name}")
