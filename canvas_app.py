@@ -24,10 +24,10 @@ ALLOWED_EXTENSION = {"png","jpg","jpeg","gif","svg","mp4","mkv","mov","m4v","avi
 def check_file(filename):
     base_path = '/public/res/'
     fullPath = path.normpath(path.join(base_path,filename))
-    print(fullPath)
-    if not fullPath.startswith(base_path):
-        print("111")
+    if  not "." in filename or not filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSION:
         return "Illegal"
+    if not fullPath.startswith(base_path):
+            return "Illegal"
     else:
         return filename
 
