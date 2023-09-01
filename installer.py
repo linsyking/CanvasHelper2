@@ -44,6 +44,10 @@ def win():
 def linux():
     pass
 
+def mac():
+    pass
+
+
 def on_item_selected(events):
     selected_item = listbox.get(listbox.curselection())
     selection_label.config(text=f"Selected: {selected_item}")
