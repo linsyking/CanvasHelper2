@@ -1,41 +1,54 @@
 import tkinter as tk
 import os
+import platform
 
 def win():
+    current_drive=os.path.abspath(__file__)[0]
+    app_path=os.getenv('APPDATA')
 
-    vbs_script_path = ""
-    bat_script_path = os.path.abspath(__file__)
+    #WARNING: Fail to get the path
+    if app_path is None:
+        print("Fail to get the APPDATA's path. See readme and solve the problem manually")
+        return
 
-# 生成 VBS 脚本内容
-    vbs_script_content = """
+    startup_folder = os.path.join(app_path, 'Microsoft\\Windows\\Start Menu\\Programs\\Startup')
+    vbs_script_path = os.path.join(startup_folder, 'canvashelper.vbs')
+    bat_script_dir = os.path.abspath(__file__)
+    bat_script_path = os.path.join(os.path.abspath(__file__), "canvashelper.bat")
+
+    #TEST: VBS
+    vbs_script_content = f"""
     Dim WinScriptHost
     Set WinScriptHost = CreateObject("WScript.Shell")
-    WinScriptHost.Run Chr(34) & "C:\\XXX\\canvashelper.bat" & Chr(34), 0
+    WinScriptHost.Run Chr(34) & "{bat_script_path}" & Chr(34), 0
     Set WinScriptHost = Nothing
     """
 
-# 生成 BAT 脚本内容
-    bat_script_content = """
+    #TEST: Bat
+    bat_script_content = f"""
     @echo off
-    d:
-    cd D:\\Project\\CanvasHelper2
+    {current_drive}
+    cd {bat_script_dir}
     uvicorn canvas_app:app --port 9283
     """
 
-# 将生成的内容写入文件
+    #INFO: Write the file
     with open(vbs_script_path, "w") as vbs_file:
         vbs_file.write(vbs_script_content)
 
     with open(bat_script_path, "w") as bat_file:
         bat_file.write(bat_script_content)
 
-    print("脚本已生成并保存到指定路径。")
+    print("Success!")
 
-def on_item_selected(event):
+def linux():
+    pass
+
+def on_item_selected(events):
     selected_item = listbox.get(listbox.curselection())
     selection_label.config(text=f"Selected: {selected_item}")
     if selected_item=="windows":
-        pass
+       win() 
     elif selected_item=="linux":
         pass
     else:
