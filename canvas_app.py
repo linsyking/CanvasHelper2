@@ -24,11 +24,10 @@ ALLOWED_EXTENSION = {"png","jpg","jpeg","gif","svg","mp4","mkv","mov","m4v","avi
 def check_file(filename):
     base_path = './public/res'
     fullPath = path.normpath(path.join(base_path,filename))
-    if not fullPath.startswith(base_path) or not "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSION:
+    if not fullPath.startswith(base_path):
         return "Illegal"
     else:
         return filename
-
 
 """
 Canvas App
