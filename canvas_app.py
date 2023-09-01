@@ -13,7 +13,6 @@ from updater import update
 import json
 import logging
 from typing import List
-from werkzeug.utils import secure_filename
 
 """
 Local function
@@ -23,11 +22,13 @@ ALLOWED_EXTENSION = {"png","jpg","jpeg","gif","svg","mp4","mkv","mov","m4v","avi
 
 # INFO: Safety check for file
 def check_file(filename):
-    if "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSION:
-        safe_filename =secure_filename(filename)
-        return safe_filename
-    else:
+    base_path = './public/res'
+    fullPath = path.normpath(path.join(base_path,filename))
+    if not fullPath.startswith(base_path) or not "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSION:
         return "Illegal"
+    else:
+        return filename
+
 
 """
 Canvas App
