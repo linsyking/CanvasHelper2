@@ -1,18 +1,18 @@
 # coding=utf-8
-'''
+"""
 @Author: King
 @Date: 2023-02-16 12:12:05
 @Email: linsy_king@sjtu.edu.cn
-'''
+"""
 
 
 import git
 import os
 import logging
 
-'''
+"""
 Update git repo automatically
-'''
+"""
 
 
 def update():
@@ -23,10 +23,11 @@ def update():
         repo.remotes.origin.pull()
         new = repo.head.commit
         if current != new:
-            logging.info(f'Updated to {new}')
+            logging.info(f"Updated to {new}")
     except Exception as e:
         logging.error(e)
-        logging.error('Cannot update')
+        logging.error("Cannot update")
+
 
 if __name__ == "__main__":
     update()
