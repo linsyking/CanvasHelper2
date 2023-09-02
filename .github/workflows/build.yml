@@ -14,20 +14,20 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v3
-    - name: Set up Python 3.7
-      uses: actions/setup-python@v3
-      with:
-        python-version: "3.7"
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-    - name: Test run
-      run: |
-        timeout 3 uvicorn canvas_app:app --port 9283 || [ $? -eq 124 ]
-    - name: Build executables
-      run: |
-        pip install pyinstaller
-        pyinstaller -F canvas_app.py
-        timeout 3 dist/canvas_app --port 9283 || [ $? -eq 124 ]
+      - uses: actions/checkout@v3
+      - name: Set up Python 3.7
+        uses: actions/setup-python@v3
+        with:
+          python-version: '3.7'
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+      - name: Test run
+        run: |
+          timeout 3 uvicorn canvas_app:app --port 9283 || [ $? -eq 124 ]
+      - name: Build executables
+        run: |
+          pip install pyinstaller
+          pyinstaller -F canvas_app.py
+          timeout 3 dist/canvas_app --port 9283 || [ $? -eq 124 ]
