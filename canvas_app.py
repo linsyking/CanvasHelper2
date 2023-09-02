@@ -13,6 +13,7 @@ from updater import update
 import json
 import logging
 from typing import List
+import uvicorn
 
 """
 Local function
@@ -480,3 +481,6 @@ async def open_url(data: URL):
     except Exception as e:
         logging.warning(e)
         return JSONResponse(status_code=400, content={"message": "Failed to open"})
+
+if __name__ == "__main__":
+    uvicorn.run(app='canvas_app:app',port=9283,reload=False)
