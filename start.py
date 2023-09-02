@@ -19,5 +19,9 @@ log_config = {
     "handlers": ["file_handler"],
     "level": "INFO",
 },
+"root": {
+    "handlers": ["file_handler"],
+    "level": "INFO",
+},
 }
-uvicorn.run(f'canvas_app:app', port=9283, reload=False,log_config=log_config)
+uvicorn.run(f"canvas_app:app", port=9283, reload=False,log_config=log_config)
