@@ -1,5 +1,6 @@
 import tkinter as tk
 import os
+import plistlib
 import platform
 
 def win():
@@ -45,7 +46,30 @@ def linux():
     pass
 
 def mac():
-    pass
+# 获取当前用户的用户名
+    current_user = os.getlogin()
+
+# 获取 Python 解释器的路径
+    python_executable = "/usr/bin/python3"
+
+# 获取 Python 脚本的路径
+    script_path = "/path/to/your_script.py"
+
+# 设置 LaunchAgent Property List 文件的路径
+    plist_file_path = f"/Users/{current_user}/Library/LaunchAgents/com.example.mypythonscript.plist"
+
+# 创建 Property List 字典
+    plist_data = {
+        "Label": "com.example.mypythonscript",
+        "ProgramArguments": [python_executable, script_path],
+        "RunAtLoad": True,
+    }
+
+# 写入 Property List 文件
+    with open(plist_file_path, "wb") as plist_file:
+        plistlib.dump(plist_data, plist_file)
+
+    print(f"自启动已设置为运行 Python 脚本：{script_path}")
 
 
 def on_item_selected(events):
