@@ -23,18 +23,36 @@ pt.append(root_path)
 Local function
 """
 
-ALLOWED_EXTENSION = {"png","jpg","jpeg","gif","svg","mp4","mkv","mov","m4v","avi","wmv","webm"}
+ALLOWED_EXTENSION = {
+    "png",
+    "jpg",
+    "jpeg",
+    "gif",
+    "svg",
+    "mp4",
+    "mkv",
+    "mov",
+    "m4v",
+    "avi",
+    "wmv",
+    "webm",
+}
+
 
 # INFO: Safety check for file
 def check_file(filename):
-    base_path = '/public/res/'
-    fullPath = path.normpath(path.join(base_path,filename))
-    if  not "." in filename or not filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSION:
+    base_path = "/public/res/"
+    fullPath = path.normpath(path.join(base_path, filename))
+    if (
+        not "." in filename
+        or not filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSION
+    ):
         return "Illegal"
     if not fullPath.startswith(base_path):
-            return "Illegal"
+        return "Illegal"
     else:
         return filename
+
 
 """
 Canvas App
@@ -149,8 +167,8 @@ async def verify_config():
     url = str(conf.get_conf()["url"])
     if url.find("http://") != 0 and url.find("https://") != 0:
         # Invalid protocal
-        url="https://"+url
-        conf.set_key_value("url",url)
+        url = "https://" + url
+        conf.set_key_value("url", url)
     res = requests.get(
         urllib.parse.urljoin(url, "api/v1/accounts"), headers=headers
     ).status_code
@@ -205,8 +223,10 @@ async def delete_course(course_id: int):
         return JSONResponse(status_code=404, content={"message": "Courses not found"})
     courses = conf.get_conf()["courses"]
     all_courses = []
-    if not isinstance(courses,List):
-        return JSONResponse(status_code=404, content={"message":"Courses type should be list."})
+    if not isinstance(courses, List):
+        return JSONResponse(
+            status_code=404, content={"message": "Courses type should be list."}
+        )
     else:
         for course in courses:
             if course["course_id"] != course_id:
@@ -226,8 +246,10 @@ async def delete_course_item(course_id: int, type: str):
         return JSONResponse(status_code=404, content={"message": "Courses not found"})
     courses = conf.get_conf()["courses"]
     all_courses = []
-    if not isinstance(courses,List):
-        JSONResponse(status_code=404, content={"message":"Courses type should be list"})
+    if not isinstance(courses, List):
+        JSONResponse(
+            status_code=404, content={"message": "Courses type should be list"}
+        )
     else:
         for course in courses:
             if course["course_id"] != course_id or course["type"] != type:
@@ -257,8 +279,10 @@ async def create_course(course: Course):
     else:
         ori_courses = conf.get_conf()["courses"]
     # Check if the course already exists
-    if not isinstance(ori_courses,List):
-        JSONResponse(status_code=404, content={"message": "Courses type should be list."})
+    if not isinstance(ori_courses, List):
+        JSONResponse(
+            status_code=404, content={"message": "Courses type should be list."}
+        )
     else:
         for c in ori_courses:
             if c["course_id"] == course.id and c["type"] == course.type:
@@ -280,8 +304,10 @@ async def modify_course(index: int, course: Course):
     if "courses" not in conf.get_conf():
         return JSONResponse(status_code=404, content={"message": "Courses not found"})
     courses = conf.get_conf()["courses"]
-    if not isinstance(courses,List):
-        return JSONResponse(status_code=404, content={"message": "Courses type should be list"})
+    if not isinstance(courses, List):
+        return JSONResponse(
+            status_code=404, content={"message": "Courses type should be list"}
+        )
     if index >= len(courses) or index < 0:
         return JSONResponse(status_code=404, content={"message": "Course not found"})
     if course.type not in ["ann", "ass", "dis"]:
@@ -358,8 +384,10 @@ async def set_check(name: str, check: Check):
     all_checks = [{"name": name, "type": check.type}]
     if "checks" in conf.get_conf():
         ori_checks = conf.get_conf()["checks"]
-        if not isinstance(ori_checks,List):
-            return JSONResponse(status_code=404, content={"message": "Courses type should be list"})
+        if not isinstance(ori_checks, List):
+            return JSONResponse(
+                status_code=404, content={"message": "Courses type should be list"}
+            )
         for ori_check in ori_checks:
             if ori_check["name"] != name:
                 all_checks.append(ori_check)
@@ -413,7 +441,7 @@ async def update_position(position: Position):
 async def upload_file(file: UploadFile):
     if not path.exists("./public/res"):
         mkdir("./public/res")
-    tmp=check_file(file.filename)
+    tmp = check_file(file.filename)
     if tmp == "Illegal":
         return JSONResponse(status_code=404, content={"message": "Illegal file name"})
     with open(f"./public/res/{file.filename}", "wb") as out_file:
@@ -428,7 +456,7 @@ async def upload_file(file: UploadFile):
     description="Delete file in public/res.",
 )
 async def delete_file(name: str):
-    tmp=check_file(name)
+    tmp = check_file(name)
     if tmp == "Illegal":
         return JSONResponse(status_code=404, content={"message": "Illegal file name"})
     if path.exists(f"./public/res/{name}"):
