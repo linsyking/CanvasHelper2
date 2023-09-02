@@ -8,16 +8,11 @@ from canvas_mgr import CanvasMGR
 import urllib.parse
 from models import Position, Check, Course, URL
 from fastapi.responses import JSONResponse
-from os import path, listdir, remove, mkdir, getcwd
-from updater import update
+from os import path, listdir, remove, mkdir
+#from updater import update
 import json
 import logging
 from typing import List
-import uvicorn
-from sys import path as pt
-
-root_path = getcwd()
-pt.append(root_path)
 
 """
 Local function
@@ -60,7 +55,7 @@ logging.basicConfig(level=logging.INFO, format="[%(levelname)s] %(message)s")
 conf = ConfigMGR()
 
 # Self Update
-update()
+#update()
 
 
 @app.get(
@@ -486,20 +481,3 @@ async def open_url(data: URL):
         logging.warning(e)
         return JSONResponse(status_code=400, content={"message": "Failed to open"})
 
-if __name__ == "__main__":
-    name_app = path.basename(__file__)[0:-3]  # Get the name of the script
-    log_config = {
-    "version": 1,
-    "disable_existing_loggers": True,
-    "handlers": {
-        "file_handler": {
-            "class": "logging.FileHandler",
-            "filename": "logfile.log",
-        },
-    },
-    "root": {
-        "handlers": ["file_handler"],
-        "level": "INFO",
-    },
-    }
-    uvicorn.run(f'{name_app}:app', port=9283, reload=False,log_config=log_config)
