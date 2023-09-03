@@ -1,27 +1,27 @@
+#!/usr/bin/env python3
+
 import uvicorn
-from sys import path as pt
-from os import getcwd, path
+from canvas_app import app
 
-root_path = getcwd()
-pt.append(root_path)
+"""
+Start script
+"""
 
-name_app = path.basename(__file__)[0:-3]  # Get the name of the script
-log_config = {
-    "version": 1,
-    "disable_existing_loggers": True,
-    "handlers": {
-        "file_handler": {
-            "class": "logging.FileHandler",
-            "filename": "logfile.log",
+
+if __name__ == "__main__":
+    log_config = {
+        "version": 1,
+        "disable_existing_loggers": True,
+        "handlers": {
+            "file_handler": {
+                "class": "logging.FileHandler",
+                "filename": "error.log",
+            },
         },
-    },
-    "root": {
-        "handlers": ["file_handler"],
-        "level": "INFO",
-    },
-    "root": {
-        "handlers": ["file_handler"],
-        "level": "INFO",
-    },
-}
-uvicorn.run(f"canvas_app:app", port=9283, reload=False, log_config=log_config)
+        "root": {
+            "handlers": ["file_handler"],
+            "level": "INFO",
+        },
+    }
+
+    uvicorn.run(app, port=9283, reload=False, log_config=log_config)

@@ -29,5 +29,5 @@ jobs:
       - name: Build executables
         run: |
           pip install pyinstaller
-          pyinstaller -F canvas_app.py
-          timeout 3 dist/canvas_app --port 9283 || [ $? -eq 124 ]
+          pyinstaller -F start.py
+          timeout 3 dist/start --port 9283 || [ $? -eq 124 ]

@@ -505,22 +505,3 @@ async def open_url(data: URL):
     except Exception as e:
         logging.warning(e)
         return JSONResponse(status_code=400, content={"message": "Failed to open"})
-
-
-if __name__ == "__main__":
-    name_app = path.basename(__file__)[0:-3]  # Get the name of the script
-    log_config = {
-        "version": 1,
-        "disable_existing_loggers": True,
-        "handlers": {
-            "file_handler": {
-                "class": "logging.FileHandler",
-                "filename": "logfile.log",
-            },
-        },
-        "root": {
-            "handlers": ["file_handler"],
-            "level": "INFO",
-        },
-    }
-    uvicorn.run(f"{name_app}:app", port=9283, reload=False, log_config=log_config)
