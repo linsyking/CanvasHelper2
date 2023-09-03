@@ -2,4 +2,3 @@ requests
 fastapi
 uvicorn
 python-multipart
-GitPython
