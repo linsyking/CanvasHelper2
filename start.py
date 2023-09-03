@@ -20,7 +20,7 @@ if __name__ == "__main__":
         },
         "root": {
             "handlers": ["file_handler"],
-            "level": "INFO",
+            "level": "ERROR",
         },
     }
 
