@@ -10,7 +10,6 @@ from models import Position, Check, Course, URL
 from fastapi.responses import JSONResponse
 from os import path, listdir, remove, mkdir
 
-# from updater import update
 import json
 import logging
 from typing import List
@@ -72,9 +71,6 @@ app.add_middleware(
 logging.basicConfig(level=logging.INFO, format="[%(levelname)s] %(message)s")
 
 conf = ConfigMGR()
-
-# Self Update
-# update()
 
 
 @app.get(
