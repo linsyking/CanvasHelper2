@@ -1,23 +1,56 @@
+#!/usr/bin/env python3
+
 import tkinter as tk
 import os
-import plistlib
-import platform
+
+"""
+Auto Setup
+
+This file can offer a gui for user
+to set the host, port and auto-start
+"""
+
+
+def net_conf(host, port, system_name):
+    base = os.path.dirname(__file__)
+    net_config_path = f"{base}/net_config.txt"
+    net_config_content = f"""
+    host:{host},
+    port:{port}
+    """
+
+    with open(net_config_path, "w") as net_config:
+        net_config.write(net_config_content)
+
+    if system_name == "windows":
+        win()
+    elif system_name == "linux":
+        linux()
+    else:
+        mac()
+
+    root.destroy()
+
 
 def win():
-    current_drive=os.path.abspath(__file__)[0]
-    app_path=os.getenv('APPDATA')
+    current_drive = os.path.abspath(__file__)[0]
+    app_path = os.getenv("APPDATA")
 
-    #WARNING: Fail to get the path
+    # WARNING: Fail to get the path
     if app_path is None:
-        print("Fail to get the APPDATA's path. See readme and solve the problem manually")
+        print(
+            "Fail to get the APPDATA's path. See readme and solve the problem manually"
+        )
         return
 
-    startup_folder = os.path.join(app_path, 'Microsoft\\Windows\\Start Menu\\Programs\\Startup')
-    vbs_script_path = os.path.join(startup_folder, 'canvashelper.vbs')
+    startup_folder = os.path.join(
+        app_path, "Microsoft\\Windows\\Start Menu\\Programs\\Startup"
+    )
+    vbs_script_path = os.path.join(startup_folder, "canvashelper.vbs")
     bat_script_dir = os.path.abspath(__file__)
     bat_script_path = os.path.join(os.path.abspath(__file__), "canvashelper.bat")
 
-    #TEST: VBS
+    # TEST: VBS
     vbs_script_content = f"""
     Dim WinScriptHost
     Set WinScriptHost = CreateObject("WScript.Shell")
@@ -25,15 +58,15 @@ def win():
     Set WinScriptHost = Nothing
     """
 
-    #TEST: Bat
+    # TEST: Bat
     bat_script_content = f"""
     @echo off
     {current_drive}
     cd {bat_script_dir}
-    uvicorn canvas_app:app --port 9283
+    ./start.py
     """
 
-    #INFO: Write the file
+    # INFO: Write the file
     with open(vbs_script_path, "w") as vbs_file:
         vbs_file.write(vbs_script_content)
 
@@ -42,61 +75,97 @@ def win():
 
     print("Success!")
 
+
 def linux():
-    pass
+    # INFO: Get path of files
+    startup_folder = os.path.dirname(__file__)
+    service_name = "/etc/systemd/system/canvashelper"
+    service_path = f"{service_name}.service"
+
+    # TEST: systemd unit
+    systemd_content = f"""
+    [Unit]
+    Description=Auto Setup for canvashelper
+
+    [Service]
+    ExecStart={startup_folder}/start
+    WorkingDirectory={startup_folder}
+    Restart=always
+
+    [Install]
+    WantedBy=multi-user.target
+    """
+
+    with open(service_path, "w") as service_file:
+        service_file.write(systemd_content)
+
+    os.system(f"sudo systemctl enable {service_name}")
+    os.system(f"sudo systemctl start {service_name}")
+
+    print("Success")
+
 
 def mac():
-# 获取当前用户的用户名
-    current_user = os.getlogin()
+    # INFO: Get path of files
+    user_home = os.path.expanduser("~")
+    launch_path = f"{user_home}/Library/LaunchAgents/canvashelper.plist"
+    startup_folder = os.path.dirname(__file__)
 
-# 获取 Python 解释器的路径
-    python_executable = "/usr/bin/python3"
+    # TEST: plist
+    plist_content = f"""
+    <?xml version="1.0" encoding="UTF-8"?>
+    <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+    <plist version="1.0">
+    <dict>
+        <key>Label</key>
+        <string>com.example.myscript</string>
+        <key>ProgramArguments</key>
+        <array>
+            <string>{startup_folder}/start</string>
+        </array>
+        <key>RunAtLoad</key>
+        <true/>
+    </dict>
+    </plist>
+    """
 
-# 获取 Python 脚本的路径
-    script_path = "/path/to/your_script.py"
+    with open(launch_path, "w") as plist_file:
+        plist_file.write(plist_content)
 
-# 设置 LaunchAgent Property List 文件的路径
-    plist_file_path = f"/Users/{current_user}/Library/LaunchAgents/com.example.mypythonscript.plist"
+    os.system(f"launchctl load {launch_path}")
 
-# 创建 Property List 字典
-    plist_data = {
-        "Label": "com.example.mypythonscript",
-        "ProgramArguments": [python_executable, script_path],
-        "RunAtLoad": True,
-    }
+    print("Success")
 
-# 写入 Property List 文件
-    with open(plist_file_path, "wb") as plist_file:
-        plistlib.dump(plist_data, plist_file)
-
-    print(f"自启动已设置为运行 Python 脚本：{script_path}")
-
-
-def on_item_selected(events):
-    selected_item = listbox.get(listbox.curselection())
-    selection_label.config(text=f"Selected: {selected_item}")
-    if selected_item=="windows":
-       win() 
-    elif selected_item=="linux":
-        pass
-    else:
-        pass
 
 root = tk.Tk()
-root.title("Listbox Example")
+root.title("Auto Setup")
 
-listbox = tk.Listbox(root)
-listbox.pack(padx=20, pady=20)
+system_label = tk.Label(root, text="Choose the system")
+system_label.pack()
 
-items = ["linux", "windows", "macos"]
-for item in items:
-    listbox.insert(tk.END, item)
+system_var = tk.StringVar()
+system_var.set("Windows")
 
-selection_label = tk.Label(root, text="Selected: ")
-selection_label.pack()
+system_option_menu = tk.OptionMenu(root, system_var, "win", "linux", "mac")
+system_option_menu.pack()
 
-listbox.bind("<<ListboxSelect>>", on_item_selected)
+host_label = tk.Label(root, text="host")
+host_label.pack()
 
-# 运行主循环
+host_entry = tk.Entry(root)
+host_entry.pack()
+
+port_label = tk.Label(root, text="port")
+port_label.pack()
+
+port_entry = tk.Entry(root)
+port_entry.pack()
+
+save_button = tk.Button(
+    root,
+    text="save",
+    command=lambda: net_conf(system_var.get(), host_entry.get(), port_entry.get()),
+)
+save_button.pack()
+
 root.mainloop()
-
