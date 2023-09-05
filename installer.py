@@ -108,7 +108,7 @@ def linux():
 def mac():
     # INFO: Get path of files
     user_home = os.path.expanduser("~")
-    launch_path = f"{user_home}/Library/LaunchAgents/canvashelper.plist"
+    launch_path = f"{user_home}/Library/LaunchAgents/com.canvashelper.service.plist"
     startup_folder = os.path.dirname(__file__)
 
     # TEST: plist
@@ -117,14 +117,24 @@ def mac():
     <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
     <plist version="1.0">
     <dict>
+
         <key>Label</key>
-        <string>com.example.myscript</string>
+        <string>com.canvashelper.service</string>
+
+        <key>WorkingDirectory</key>
+        <string>{startup_folder}</string>
+
         <key>ProgramArguments</key>
         <array>
             <string>{startup_folder}/start</string>
         </array>
+
         <key>RunAtLoad</key>
         <true/>
+
+        <key>KeepAlive</key>
+        <true/>
+
     </dict>
     </plist>
     """
@@ -132,7 +142,8 @@ def mac():
     with open(launch_path, "w") as plist_file:
         plist_file.write(plist_content)
 
-    os.system(f"launchctl load {launch_path}")
+    os.system(f"launchctl load -w {launch_path}")
+    os.system(f"launchctl start {launch_path}")
 
     print("Success")
 
