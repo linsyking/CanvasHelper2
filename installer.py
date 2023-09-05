@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import tkinter as tk
+from getpass import getuser
 import os
 
 """
@@ -22,7 +23,7 @@ def net_conf(host, port, system_name):
     with open(net_config_path, "w") as net_config:
         net_config.write(net_config_content)
 
-    if system_name == "windows":
+    if system_name == "win":
         win()
     elif system_name == "linux":
         linux()
@@ -34,23 +35,19 @@ def net_conf(host, port, system_name):
 
 def win():
     current_drive = os.path.abspath(__file__)[0]
-    app_path = os.getenv("APPDATA")
+    user_name = getuser()
 
-    # WARNING: Fail to get the path
-    if app_path is None:
-        print(
-            "Fail to get the APPDATA's path. See readme and solve the problem manually"
-        )
+    if user_name is None:
+        print("Fail to get the User Name. See readme and solve the problem manually")
         return
 
-    startup_folder = os.path.join(
-        app_path, "Microsoft\\Windows\\Start Menu\\Programs\\Startup"
-    )
-    vbs_script_path = os.path.join(startup_folder, "canvashelper.vbs")
-    bat_script_dir = os.path.abspath(__file__)
-    bat_script_path = os.path.join(os.path.abspath(__file__), "canvashelper.bat")
+    startup_folder = f"C:\\Users\\{user_name}\\AppData\\Roaming\\Microsoft\\Windows\\Start Menu\\Programs\\Startup"
 
-    # TEST: VBS
+    vbs_script_path = f"{startup_folder}\\canvashelper.vbs"
+    bat_script_dir = os.path.dirname(__file__)
+    bat_script_path = os.path.join(bat_script_dir, "canvashelper.bat")
+
+    # PASSED: VBS
     vbs_script_content = f"""
     Dim WinScriptHost
     Set WinScriptHost = CreateObject("WScript.Shell")
@@ -58,10 +55,10 @@ def win():
     Set WinScriptHost = Nothing
     """
 
-    # TEST: Bat
+    # PASSED: Bat
     bat_script_content = f"""
     @echo off
-    {current_drive}
+    {current_drive}:
     cd {bat_script_dir}
     ./start.py
     """
@@ -111,7 +108,7 @@ def mac():
     launch_path = f"{user_home}/Library/LaunchAgents/com.canvashelper.service.plist"
     startup_folder = os.path.dirname(__file__)
 
-    # TEST: plist
+    # PASSED: plist
     plist_content = f"""
     <?xml version="1.0" encoding="UTF-8"?>
     <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -155,7 +152,7 @@ system_label = tk.Label(root, text="Choose the system")
 system_label.pack()
 
 system_var = tk.StringVar()
-system_var.set("Windows")
+system_var.set("Select your system")
 
 system_option_menu = tk.OptionMenu(root, system_var, "win", "linux", "mac")
 system_option_menu.pack()
@@ -175,7 +172,7 @@ port_entry.pack()
 save_button = tk.Button(
     root,
     text="save",
-    command=lambda: net_conf(system_var.get(), host_entry.get(), port_entry.get()),
+    command=lambda: net_conf(host_entry.get(), port_entry.get(), system_var.get()),
 )
 save_button.pack()
 
