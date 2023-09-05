@@ -13,7 +13,7 @@ to set the host, port and auto-start
 
 
 def net_conf(host, port, system_name):
-    base = os.path.dirname(__file__)
+    base = os.getcwd()
     net_config_path = f"{base}/net_config.txt"
     net_config_content = f"""
     host:{host},
@@ -75,11 +75,11 @@ def win():
 
 def linux():
     # INFO: Get path of files
-    startup_folder = os.path.dirname(__file__)
+    startup_folder = os.getcwd()
     service_name = "/etc/systemd/system/canvashelper"
     service_path = f"{service_name}.service"
 
-    # TEST: systemd unit
+    # PASSED: systemd unit
     systemd_content = f"""
     [Unit]
     Description=Auto Setup for canvashelper
@@ -96,8 +96,8 @@ def linux():
     with open(service_path, "w") as service_file:
         service_file.write(systemd_content)
 
-    os.system(f"sudo systemctl enable {service_name}")
-    os.system(f"sudo systemctl start {service_name}")
+    os.system(f"sudo systemctl enable canvashelper.service")
+    os.system(f"sudo systemctl start canvashelper.service")
 
     print("Success")
 
@@ -106,7 +106,7 @@ def mac():
     # INFO: Get path of files
     user_home = os.path.expanduser("~")
     launch_path = f"{user_home}/Library/LaunchAgents/com.canvashelper.service.plist"
-    startup_folder = os.path.dirname(__file__)
+    startup_folder = os.getcwd()
 
     # PASSED: plist
     plist_content = f"""
