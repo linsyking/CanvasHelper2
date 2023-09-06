@@ -20,6 +20,7 @@ def win():
     os.system(f"del {vbs_script_path}")
     os.system("del ./canvashelper.bat")
 
+#PASSED: Tested on macos Ventura 13.3.1
 def mac():
     user_home = os.path.expanduser("~")
     launch_path = f"{user_home}/Library/LaunchAgents/com.canvashelper.service.plist"
@@ -29,6 +30,7 @@ def mac():
         os.system(f"launchctl unload {launch_path}")
     os.system(f"rm {launch_path}")
 
+#PASSED: Tested on docker unbuntu 20.04
 def linux():
     service_name = "/etc/systemd/system/canvashelper"
     service_path = f"{service_name}.service"
@@ -51,3 +53,4 @@ elif config["system"] == "mac":
 elif config["system"]=="linux":
     linux()
 
+print("Success!")
