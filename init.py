@@ -9,17 +9,17 @@ from subprocess import Popen, PIPE
 """
 Auto Setup
 
-This file can offer a gui for user
-to set the host, port and auto-start
+This file can offer a gui for user to set
+(or reset) the host, port and auto-start
 """
 
 
 def net_conf(host, port, system_name):
     net_config = {
-            "system": system_name,
-            "host": host,
-            "port": port,
-            }
+        "system": system_name,
+        "host": host,
+        "port": port,
+    }
     with open("./net_config.json", "w", encoding="utf-8", errors="ignore") as f:
         json.dump(net_config, f, ensure_ascii=False, indent=4)
 
@@ -139,7 +139,7 @@ def mac():
     with open(launch_path, "w") as plist_file:
         plist_file.write(plist_content)
 
-    ret,_=Popen("launchctl list|grep canvas", shell=True, stdout=PIPE).communicate()
+    ret, _ = Popen("launchctl list|grep canvas", shell=True, stdout=PIPE).communicate()
     if ret.decode("utf-8").strip() is not None:
         os.system(f"launchctl unload {launch_path}")
 

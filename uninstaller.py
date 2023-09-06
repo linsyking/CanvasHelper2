@@ -2,8 +2,16 @@
 
 import json
 from getpass import getuser
-from subprocess import Popen,PIPE
+from subprocess import Popen, PIPE
 import os
+
+"""
+Uninstaller
+
+Remove the file related to auto-setup
+For safety concern, it will not remove the content of canvas helper
+"""
+
 
 def win():
     user_name = getuser()
@@ -20,17 +28,19 @@ def win():
     os.system(f"del {vbs_script_path}")
     os.system("del ./canvashelper.bat")
 
-#PASSED: Tested on macos Ventura 13.3.1
+
+# PASSED: Tested on macos Ventura 13.3.1
 def mac():
     user_home = os.path.expanduser("~")
     launch_path = f"{user_home}/Library/LaunchAgents/com.canvashelper.service.plist"
 
-    ret,_=Popen("launchctl list|grep canvas", shell=True, stdout=PIPE).communicate()
+    ret, _ = Popen("launchctl list|grep canvas", shell=True, stdout=PIPE).communicate()
     if ret.decode("utf-8").strip() is not None:
         os.system(f"launchctl unload {launch_path}")
     os.system(f"rm {launch_path}")
 
-#PASSED: Tested on docker unbuntu 20.04
+
+# PASSED: Tested on docker unbuntu 20.04
 def linux():
     service_name = "/etc/systemd/system/canvashelper"
     service_path = f"{service_name}.service"
@@ -39,10 +49,11 @@ def linux():
     os.system("systemctl disable canvashelper.service")
     os.system(f"rm {service_path}")
 
-config={}
+
+config = {}
 
 with open("./net_config.json", "r", encoding="utf-8", errors="ignore") as f:
-    config=json.load(f)
+    config = json.load(f)
 
 if config["system"] == "win":
     win()
@@ -50,7 +61,7 @@ if config["system"] == "win":
 elif config["system"] == "mac":
     mac()
 
-elif config["system"]=="linux":
+elif config["system"] == "linux":
     linux()
 
 print("Success!")
