@@ -33,4 +33,9 @@ if __name__ == "__main__":
         usr_host = net_config["host"]
         usr_port = net_config["port"]
 
+        if usr_host == "":
+            usr_host = "localhost"
+        if usr_port == "":
+            usr_port = 9283
+
     uvicorn.run(app, port=usr_port, host=usr_host, reload=False, log_config=log_config)
