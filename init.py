@@ -3,6 +3,8 @@
 import tkinter as tk
 from getpass import getuser
 import os
+import json
+from subprocess import Popen, PIPE
 
 """
 Auto Setup
@@ -13,15 +15,13 @@ to set the host, port and auto-start
 
 
 def net_conf(host, port, system_name):
-    base = os.getcwd()
-    net_config_path = f"{base}/net_config.txt"
-    net_config_content = f"""
-    host:{host},
-    port:{port}
-    """
-
-    with open(net_config_path, "w") as net_config:
-        net_config.write(net_config_content)
+    net_config = {
+            "system": system_name,
+            "host": host,
+            "port": port,
+            }
+    with open("./net_config.json", "w", encoding="utf-8", errors="ignore") as f:
+        json.dump(net_config, f, ensure_ascii=False, indent=4)
 
     if system_name == "win":
         win()
@@ -44,7 +44,7 @@ def win():
     startup_folder = f"C:\\Users\\{user_name}\\AppData\\Roaming\\Microsoft\\Windows\\Start Menu\\Programs\\Startup"
 
     vbs_script_path = f"{startup_folder}\\canvashelper.vbs"
-    bat_script_dir = os.path.dirname(__file__)
+    bat_script_dir = os.getcwd()
     bat_script_path = os.path.join(bat_script_dir, "canvashelper.bat")
 
     # PASSED: VBS
@@ -138,6 +138,10 @@ def mac():
 
     with open(launch_path, "w") as plist_file:
         plist_file.write(plist_content)
+
+    ret,_=Popen("launchctl list|grep canvas", shell=True, stdout=PIPE).communicate()
+    if ret.decode("utf-8").strip() is not None:
+        os.system(f"launchctl unload {launch_path}")
 
     os.system(f"launchctl load -w {launch_path}")
     os.system(f"launchctl start {launch_path}")

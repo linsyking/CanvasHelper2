@@ -2,6 +2,7 @@
 canvas/
 user_conf.json
 public/res
+net_config.json
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -139,3 +140,5 @@ dmypy.json
 # Macos
 .DS_Store
 
+# Bin
+start
