@@ -161,13 +161,13 @@ system_var.set("Select your system")
 system_option_menu = tk.OptionMenu(root, system_var, "win", "linux", "mac")
 system_option_menu.pack()
 
-host_label = tk.Label(root, text="host")
+host_label = tk.Label(root, text="host (default value: localhost)")
 host_label.pack()
 
 host_entry = tk.Entry(root)
 host_entry.pack()
 
-port_label = tk.Label(root, text="port")
+port_label = tk.Label(root, text="port (default value: 9283)")
 port_label.pack()
 
 port_entry = tk.Entry(root)
