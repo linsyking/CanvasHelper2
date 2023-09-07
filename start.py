@@ -3,6 +3,7 @@
 import uvicorn
 from canvas_app import app
 import json
+from os import path
 
 """
 Start script
@@ -27,15 +28,19 @@ if __name__ == "__main__":
         },
     }
 
-    with open("net_config.json", "r", encoding="utf-8", errors="ignore") as f:
-        net_config = json.load(f)
+    if path.exists("net_config.json"):
+        with open("net_config.json", "r", encoding="utf-8", errors="ignore") as f:
+            net_config = json.load(f)
 
-        usr_host = net_config["host"]
-        usr_port = net_config["port"]
+            usr_host = net_config["host"]
+            usr_port = net_config["port"]
 
-        if usr_host == "":
-            usr_host = "localhost"
-        if usr_port == "":
-            usr_port = 9283
+            if usr_host == "":
+                usr_host = "localhost"
+            if usr_port == "":
+                usr_port = 9283
+    else:
+        usr_host = "localhost"
+        usr_port = 9283
 
     uvicorn.run(app, port=usr_port, host=usr_host, reload=False, log_config=log_config)
