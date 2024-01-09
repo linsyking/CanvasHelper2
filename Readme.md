@@ -37,10 +37,12 @@ git clone https://github.com/linsyking/CanvasHelper2.git
 cd CanvasHelper2
 ```
 
-Install the dependencies:
+Then install the dependencies. It is recommended to use a virtual environment for installation:
 
 ```bash
-pip3 install -r requirements.txt
+python -m venv env # You may want to change `python` to `python3` or other python binaries
+source env/bin/activate # You may want to change the activation script according to your shell
+pip install -r requirements.txt
 ```
 
 If you don't want to change any settings (like CORS), you can directly run: (If you want to use frontend on our server, you must use `9283` port)
