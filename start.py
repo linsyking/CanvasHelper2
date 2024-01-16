@@ -32,13 +32,13 @@ if __name__ == "__main__":
         with open("net_config.json", "r", encoding="utf-8", errors="ignore") as f:
             net_config = json.load(f)
 
+            if "host" not in net_config:
+                raise Exception("no host")
+            elif "port" not in net_config:
+                raise Exception("no port")
+
             usr_host = net_config["host"]
             usr_port = net_config["port"]
-
-            if usr_host == "":
-                usr_host = "localhost"
-            if usr_port == "":
-                usr_port = 9283
     else:
         usr_host = "localhost"
         usr_port = 9283
