@@ -37,13 +37,14 @@ ALLOWED_EXTENSION = {
 # INFO: Safety check for file
 def check_file(filename):
     base_path = "/public/res/"
+    base_path_win = "\\public\\res\\"
     fullPath = path.normpath(path.join(base_path, filename))
     if (
         not "." in filename
         or not filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSION
     ):
         return "Illegal"
-    if not fullPath.startswith(base_path):
+    if not fullPath.startswith(base_path) and not fullPath.startswith(base_path_win):
         return "Illegal"
     else:
         return filename
