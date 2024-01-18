@@ -36,7 +36,7 @@ ALLOWED_EXTENSION = {
 
 # INFO: Safety check for file
 def check_file(filename):
-    flag=True
+    flag = True
     base_path = "/public/res/"
     base_path_win = "\\public\\res\\"
     fullPath = path.normpath(path.join(base_path, filename))
@@ -44,10 +44,10 @@ def check_file(filename):
         not "." in filename
         or not filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSION
     ):
-        flag=False
+        flag = False
         return (flag, filename)
     if not fullPath.startswith(base_path) and not fullPath.startswith(base_path_win):
-        flag=False
+        flag = False
         return (flag, filename)
     else:
         return (flag, filename)
@@ -515,4 +515,3 @@ async def open_url(data: URL):
     except Exception as e:
         logging.warning(e)
         return JSONResponse(status_code=400, content={"message": "Failed to open"})
-
