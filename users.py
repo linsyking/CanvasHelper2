@@ -9,11 +9,13 @@ def conf_file_name(username):
     # return user_conf_path + hashlib.md5(
     #     username.encode()).hexdigest() + '.json'
     return user_conf_path + base64.b64encode(
-        username.encode("ascii")) + '.json'
+        username.encode("ascii")).decode("utf-8") + '.json'
+
 
 def cache_file_name(username):
-    return user_conf_path + 'cache_' + base64.b64encode(
-        username.encode("ascii")) + '.json'
+    return user_cache_path + 'cache_' + base64.b64encode(
+        username.encode("ascii")).decode("utf-8") + '.json'
+
 
 # def init_user(username):
 #     if path.exists(conf_file_name(username)):
