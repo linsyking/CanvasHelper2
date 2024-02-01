@@ -70,7 +70,7 @@ update()
 
 
 def verify_cookie(auth_token: str = Cookie(None)):  # Require cookie object
-    # Same as get_verified_user, but for interface dependency
+    # Same as verify_login, but for interface dependency
     username = verify_login(auth_token)
     if not username:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
@@ -160,9 +160,6 @@ async def read_users_me(current_user: dict = Depends(verify_cookie)):
     dependencies=[Depends(verify_cookie)],
 )
 async def get_configuration(username: str = Depends(verify_cookie)):
-    # if not auth_token:
-    #     raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
-    #                         detail="Not authenticated")
     return conf.get_conf(username)
 
 

@@ -8,8 +8,6 @@ uvicorn_domain = "localhost"  # Used to start uvicorn locally by running: `pytho
 uvicorn_port = 9283
 
 # Security
-ja3_fingerprints = {}
-
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 ALGORITHM = "HS256"
 
