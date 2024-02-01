@@ -2,69 +2,41 @@
 
 import json
 from os import path
-
-"""
-Configuration Manager
-
-Configuration is located in ./user_conf.json
-It will include:
-- Canvas configuration
-- Wallpaper configuration
-- All courses configuration
-"""
-
+from users import conf_file_name
 
 class ConfigMGR:
-    configuration = {}
-
     def __init__(self):
-        if not path.exists("user_conf.json"):
-            # Create this configuration file
-            self.configuration = {
-                "version": 1,
-            }
-            self.write_conf()
+        pass  # No action needed in constructor for per-user config
+
+    def get_conf(self, username):
+        config_file = conf_file_name(username)
+        if path.exists(config_file):
+            with open(config_file, "r", encoding="utf-8", errors="ignore") as f:
+                return json.load(f)
         else:
-            self.force_read()
-            if self.configuration["version"] != 1:
-                raise Exception("Error: Configuration file version mismatch!")
+            # Return a default configuration or raise an error
+            return {
+                "version": 1,
+                # Add more default settings if necessary
+            }
 
-    def write_conf(self):
-        """
-        Write configuration to the local file.
-        """
-        self.check_health()
-        with open("./user_conf.json", "w", encoding="utf-8", errors="ignore") as f:
-            json.dump(self.configuration, f, ensure_ascii=False, indent=4)
+    def write_conf(self, username, configuration):
+        config_file = conf_file_name(username)
+        with open(config_file, "w", encoding="utf-8", errors="ignore") as f:
+            json.dump(configuration, f, ensure_ascii=False, indent=4)
 
-    def get_conf(self):
-        return self.configuration
+    def remove_key(self, username, key):
+        configuration = self.get_conf(username)
+        configuration.pop(key, None)  # Use pop with default to avoid KeyError
+        self.write_conf(username, configuration)
 
-    def remove_key(self, key: str):
-        self.configuration.pop(key)
-        self.write_conf()
+    def set_key_value(self, username, key, value):
+        configuration = self.get_conf(username)
+        configuration[key] = value
+        self.write_conf(username, configuration)
 
-    def force_read(self):
-        """
-        Read configuration file.
-        """
-        with open("./user_conf.json", "r", encoding="utf-8", errors="ignore") as f:
-            self.configuration = json.load(f)
+    def update_conf(self, username, conf):
+        self.write_conf(username, conf)
 
-    def check_health(self):
-        if not self.configuration:
-            raise Exception("No configuration found")
-
-    def set_key_value(self, key, value):
-        self.configuration[key] = value
-        self.write_conf()
-
-    def update_conf(self, conf):
-        """
-        Update the whole configuration
-        """
-        self.configuration = conf
-        self.write_conf()
-
-    def set_wallpaper_path(self, path):
-        self.configuration["wallpaper_path"] = path
+    def set_wallpaper_path(self, username, path):
+        self.set_key_value(username, "wallpaper_path", path)

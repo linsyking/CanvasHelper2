@@ -1,8 +1,13 @@
 #!/usr/bin/env python3
 
-from fastapi import FastAPI, Request, UploadFile
-from fastapi.responses import FileResponse
+from fastapi import FastAPI, Request, UploadFile, HTTPException, Depends, Cookie, status, Response
+from fastapi.responses import FileResponse, HTMLResponse
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+import uvicorn
+from uvicorn.config import LOGGING_CONFIG
+import requests
+from jose import jwt, JWTError
 from config_mgr import ConfigMGR
 from canvas_mgr import CanvasMGR
 import urllib.parse
@@ -13,37 +18,23 @@ from updater import update
 import json
 import logging
 from typing import List
-
+from global_config import *
+from auth import *
+from users import cache_file_name
 """
 Local function
 """
-
-ALLOWED_EXTENSION = {
-    "png",
-    "jpg",
-    "jpeg",
-    "gif",
-    "svg",
-    "mp4",
-    "mkv",
-    "mov",
-    "m4v",
-    "avi",
-    "wmv",
-    "webm",
-}
 
 
 # INFO: Safety check for file
 def check_file(filename):
     base_path = "/public/res/"
     fullPath = path.normpath(path.join(base_path, filename))
-    if (
-        not "." in filename
-        or not filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSION
-    ):
+    fullPath = fullPath.replace("\\", "/")
+    if ("." not in filename
+            or filename.rsplit(".", 1)[1].lower() not in ALLOWED_EXTENSION):
         return "Illegal"
-    if not fullPath.startswith(base_path):
+    if not fullPath.startswith(base_path):  # the failure happens here
         return "Illegal"
     else:
         return filename
@@ -56,17 +47,19 @@ This file contains all the APIs to access the
 configuration file/canvas backend, etc..
 """
 
-
-app = FastAPI(version="1.0.1", title="Canvas Helper", description="Canvas Helper API.")
+app = FastAPI(version="1.0.1",
+              title="Canvas Helper",
+              description="Canvas Helper API.")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[front_end_domain],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 logging.basicConfig(level=logging.INFO, format="[%(levelname)s] %(message)s")
 
@@ -76,14 +69,101 @@ conf = ConfigMGR()
 update()
 
 
+def verify_cookie(auth_token: str = Cookie(None)):  # Require cookie object
+    # Same as get_verified_user, but for interface dependency
+    username = verify_login(auth_token)
+    if not username:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
+                            detail="Not authenticated")
+    return verify_login(auth_token)  # Pass in string
+
+
+# Endpoints
+@app.post("/login")
+async def login(response: Response,
+                form_data: OAuth2PasswordRequestForm = Depends(),
+                auth_token: str = Cookie(None)):
+    if verify_login(auth_token):
+        # Return HTML to avoid POST to GET conversion
+        html_content = f'<script>location.href = "{front_end_domain}"</script>'
+        return HTMLResponse(content=html_content,
+                            status_code=status.HTTP_200_OK)
+        # response = RedirectResponse(url=front_end_domain,
+        #                             status_code=status.HTTP_302_FOUND)
+        # response.headers["Access-Control-Allow-Origin"] = front_end_domain
+        # return response
+
+    user = authenticate_user(form_data.username, form_data.password)
+    if not user:
+        raise HTTPException(status_code=400,
+                            detail="Incorrect username or password")
+
+    # Generate access token
+    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token = create_access_token(data={"sub": user},
+                                       expires_delta=access_token_expires)
+
+    # Generate refresh token
+    refresh_token_expires = timedelta(days=REFRESH_TOKEN_EXPIRE_DAYS)
+    refresh_token = create_refresh_token(data={"sub": user},
+                                         expires_delta=refresh_token_expires)
+
+    # Set cookies for both access and refresh tokens
+    response.set_cookie(key="auth_token",
+                        value=access_token,
+                        secure=True,
+                        samesite='None')
+    response.set_cookie(key="refresh_token",
+                        value=refresh_token,
+                        secure=True,
+                        samesite='None')
+
+    return {"message": "Logged in"}
+
+
+@app.post("/refresh")
+async def refresh_token(response: Response, refresh_token: str = Cookie(None)):
+    if not refresh_token:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
+                            detail="Refresh token missing")
+    try:
+        payload = jwt.decode(refresh_token, SECRET_KEY, algorithms=[ALGORITHM])
+        username: str = payload.get("sub")
+        if not username:
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
+                                detail="Not authenticated")
+    except JWTError:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
+                            detail="Invalid refresh token")
+
+    # Generate new access token
+    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    new_access_token = create_access_token(data={"sub": username},
+                                           expires_delta=access_token_expires)
+    response.set_cookie(key="auth_token",
+                        value=new_access_token,
+                        secure=True,
+                        samesite='None')
+    return {"message": "Refreshed token"}
+
+
+@app.get("/users/me")
+async def read_users_me(current_user: dict = Depends(verify_cookie)):
+    return current_user
+
+
 @app.get(
     "/config",
     summary="Get the configuration file",
     description="Get the configuration file.",
     tags=["config"],
+    dependencies=[Depends(verify_cookie)],
 )
-async def get_configuration():
-    return conf.get_conf()
+async def get_configuration(username: str = Depends(verify_cookie)):
+    # if not auth_token:
+    #     raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
+    #                         detail="Not authenticated")
+    return conf.get_conf(username)
 
 
 @app.get(
@@ -91,9 +171,10 @@ async def get_configuration():
     tags=["config"],
     summary="Refresh the configuration file",
     description="Force to read the configuration file from disk.",
+    dependencies=[Depends(verify_cookie)],
 )
-async def refresh_conf():
-    conf.force_read()
+async def refresh_conf(username: str = Depends(verify_cookie)):
+    conf.force_read(username)
     return JSONResponse(status_code=200, content={"message": "success"})
 
 
@@ -102,11 +183,15 @@ async def refresh_conf():
     tags=["config"],
     summary="Get a specific key from the configuration file",
     description="Get a specific key from the configuration file.",
+    dependencies=[Depends(verify_cookie)],
 )
-async def get_configuration_key(key: str):
-    if key not in conf.get_conf():
-        return JSONResponse(status_code=404, content={"message": "Key not found"})
-    return conf.get_conf()[key]
+async def get_configuration_key(key: str,
+                                username: str = Depends(verify_cookie)):
+    conf_content = conf.get_conf(username)
+    if key not in conf_content:
+        return JSONResponse(status_code=404,
+                            content={"message": "Key not found"})
+    return conf_content[key]
 
 
 @app.put(
@@ -114,14 +199,18 @@ async def get_configuration_key(key: str):
     tags=["config"],
     summary="Update a specific key in the configuration file",
     description="Update a specific key in the configuration file.",
+    dependencies=[Depends(verify_cookie)],
 )
-async def update_configuration(key: str, request: Request):
+async def update_configuration(key: str,
+                               request: Request,
+                               username: str = Depends(verify_cookie)):
     body = await request.body()
     try:
         body_p = json.loads('{"data" : ' + body.decode(encoding="utf-8") + "}")
     except:
-        return JSONResponse(status_code=400, content={"message": "Cannot parse body"})
-    conf.set_key_value(key, body_p["data"])
+        return JSONResponse(status_code=400,
+                            content={"message": "Cannot parse body"})
+    conf.set_key_value(username, key, body_p["data"])
     return JSONResponse(status_code=200, content={"message": "success"})
 
 
@@ -130,11 +219,14 @@ async def update_configuration(key: str, request: Request):
     tags=["config"],
     summary="Delete a specific key in the configuration file",
     description="Delete a specific key in the configuration file.",
+    dependencies=[Depends(verify_cookie)],
 )
-async def delete_configuration(key: str):
-    if key not in conf.get_conf():
-        return JSONResponse(status_code=404, content={"message": "Key not found"})
-    conf.remove_key(key)
+async def delete_configuration(key: str,
+                               username: str = Depends(verify_cookie)):
+    if key not in conf.get_conf(username):
+        return JSONResponse(status_code=404,
+                            content={"message": "Key not found"})
+    conf.remove_key(username, key)
     return JSONResponse(status_code=200, content={"message": "success"})
 
 
@@ -143,34 +235,37 @@ async def delete_configuration(key: str):
     tags=["config"],
     summary="Verify the configuration file",
     description="Verify the configuration file.",
+    dependencies=[Depends(verify_cookie)],
 )
-async def verify_config():
+async def verify_config(username: str = Depends(verify_cookie)):
+    conf_content = conf.get_conf(username)
     """
     Verify the configuration
     """
-    if "bid" not in conf.get_conf():
-        return JSONResponse(status_code=404, content={"message": "bid not found"})
-    if "url" not in conf.get_conf():
-        return JSONResponse(status_code=404, content={"message": "url not found"})
-    if "background_image" not in conf.get_conf() and "video" not in conf.get_conf():
-        return JSONResponse(status_code=400, content={"message": "background not set"})
+    if "bid" not in conf_content:
+        return JSONResponse(status_code=404,
+                            content={"message": "bid not found"})
+    if "url" not in conf_content:
+        return JSONResponse(status_code=404,
+                            content={"message": "url not found"})
+    if "background_image" not in conf_content and "video" not in conf_content:
+        return JSONResponse(status_code=400,
+                            content={"message": "background not set"})
     # Test bid
 
-    import requests
-
-    headers = {"Authorization": f'Bearer {conf.get_conf()["bid"]}'}
-    url = str(conf.get_conf()["url"])
+    headers = {"Authorization": f'Bearer {conf_content["bid"]}'}
+    url = str(conf_content["url"])
     if url.find("http://") != 0 and url.find("https://") != 0:
         # Invalid protocal
         url = "https://" + url
-        conf.set_key_value("url", url)
-    res = requests.get(
-        urllib.parse.urljoin(url, "api/v1/accounts"), headers=headers
-    ).status_code
+        conf.set_key_value(username, "url", url)
+    res = requests.get(urllib.parse.urljoin(url, "api/v1/accounts"),
+                       headers=headers).status_code
     if res == 200:
         return JSONResponse(status_code=200, content={"message": "success"})
     else:
-        return JSONResponse(status_code=400, content={"message": "verification failed"})
+        return JSONResponse(status_code=400,
+                            content={"message": "verification failed"})
 
 
 @app.get(
@@ -178,11 +273,14 @@ async def verify_config():
     tags=["course"],
     summary="Get all the courses",
     description="Get all the courses.",
+    dependencies=[Depends(verify_cookie)],
 )
-async def get_all_courses():
-    if "courses" not in conf.get_conf():
+async def get_all_courses(username: str = Depends(verify_cookie)):
+    conf_content = conf.get_conf(username)
+
+    if "courses" not in conf_content:
         return []
-    return conf.get_conf()["courses"]
+    return conf_content["courses"]
 
 
 @app.get(
@@ -190,18 +288,19 @@ async def get_all_courses():
     tags=["course"],
     summary="Get all the courses from canvas",
     description="Get all the courses from canvas.",
+    dependencies=[Depends(verify_cookie)],
 )
-async def get_all_canvas_courses():
-    if "bid" not in conf.get_conf():
-        return JSONResponse(status_code=404, content={"message": "bid not found"})
+async def get_all_canvas_courses(username: str = Depends(verify_cookie)):
+    conf_content = conf.get_conf(username)
 
-    import requests
+    if "bid" not in conf_content:
+        return JSONResponse(status_code=404,
+                            content={"message": "bid not found"})
 
-    headers = {"Authorization": f'Bearer {conf.get_conf()["bid"]}'}
+    headers = {"Authorization": f'Bearer {conf_content["bid"]}'}
     res = requests.get(
-        urllib.parse.urljoin(
-            str(conf.get_conf()["url"]), "api/v1/dashboard/dashboard_cards"
-        ),
+        urllib.parse.urljoin(str(conf_content["url"]),
+                             "api/v1/dashboard/dashboard_cards"),
         headers=headers,
     ).text
     return json.loads(res)
@@ -211,22 +310,28 @@ async def get_all_canvas_courses():
     "/courses/{course_id}",
     tags=["course"],
     summary="Delete a course",
-    description="Delete a course. It will delete all the course items with the given course id.",
+    description=
+    "Delete a course. It will delete all the course items with the given course id.",
+    dependencies=[Depends(verify_cookie)],
 )
-async def delete_course(course_id: int):
-    if "courses" not in conf.get_conf():
-        return JSONResponse(status_code=404, content={"message": "Courses not found"})
-    courses = conf.get_conf()["courses"]
+async def delete_course(course_id: int,
+                        username: str = Depends(verify_cookie)):
+    conf_content = conf.get_conf(username)
+
+    if "courses" not in conf_content:
+        return JSONResponse(status_code=404,
+                            content={"message": "Courses not found"})
+    courses = conf_content["courses"]
     all_courses = []
     if not isinstance(courses, List):
         return JSONResponse(
-            status_code=404, content={"message": "Courses type should be list."}
-        )
+            status_code=404,
+            content={"message": "Courses type should be list."})
     else:
         for course in courses:
             if course["course_id"] != course_id:
                 all_courses.append(course)
-        conf.set_key_value("courses", all_courses)
+        conf.set_key_value(username, "courses", all_courses)
         return JSONResponse(status_code=200, content={"message": "success"})
 
 
@@ -234,33 +339,48 @@ async def delete_course(course_id: int):
     "/courses/{course_id}/{type}",
     tags=["course"],
     summary="Delete a course item",
-    description="Delete a course item. It will delete the course item with the given course id and type.",
+    description=
+    "Delete a course item. It will delete the course item with the given course id and type.",
+    dependencies=[Depends(verify_cookie)],
 )
-async def delete_course_item(course_id: int, type: str):
-    if "courses" not in conf.get_conf():
-        return JSONResponse(status_code=404, content={"message": "Courses not found"})
-    courses = conf.get_conf()["courses"]
+async def delete_course_item(course_id: int,
+                             type: str,
+                             username: str = Depends(verify_cookie)):
+    conf_content = conf.get_conf(username)
+
+    if "courses" not in conf_content:
+        return JSONResponse(status_code=404,
+                            content={"message": "Courses not found"})
+    courses = conf_content["courses"]
     all_courses = []
     if not isinstance(courses, List):
-        JSONResponse(
-            status_code=404, content={"message": "Courses type should be list"}
-        )
+        JSONResponse(status_code=404,
+                     content={"message": "Courses type should be list"})
     else:
         for course in courses:
             if course["course_id"] != course_id or course["type"] != type:
                 all_courses.append(course)
-        conf.set_key_value("courses", all_courses)
+        conf.set_key_value(username, "courses", all_courses)
         return JSONResponse(status_code=200, content={"message": "success"})
 
 
 @app.post(
-    "/courses", tags=["course"], summary="Add a course", description="Add a course."
+    "/courses",
+    tags=["course"],
+    summary="Add a course",
+    description="Add a course.",
+    dependencies=[Depends(verify_cookie)],
 )
-async def create_course(course: Course):
+async def create_course(course: Course,
+                        username: str = Depends(verify_cookie)):
+    conf_content = conf.get_conf(username)
+
     if course.type not in ["ann", "dis", "ass"]:
-        return JSONResponse(status_code=400, content={"message": "Invalid course type"})
+        return JSONResponse(status_code=400,
+                            content={"message": "Invalid course type"})
     if course.name == "":
-        return JSONResponse(status_code=400, content={"message": "Empty course name"})
+        return JSONResponse(status_code=400,
+                            content={"message": "Empty course name"})
     course_info = {
         "course_id": course.id,
         "course_name": course.name,
@@ -269,23 +389,22 @@ async def create_course(course: Course):
         "order": course.order,
         "msg": course.msg,
     }
-    if "courses" not in conf.get_conf():
+    if "courses" not in conf_content:
         ori_courses = []
     else:
-        ori_courses = conf.get_conf()["courses"]
+        ori_courses = conf_content["courses"]
     # Check if the course already exists
     if not isinstance(ori_courses, List):
-        JSONResponse(
-            status_code=404, content={"message": "Courses type should be list."}
-        )
+        JSONResponse(status_code=404,
+                     content={"message": "Courses type should be list."})
     else:
         for c in ori_courses:
             if c["course_id"] == course.id and c["type"] == course.type:
                 return JSONResponse(
-                    status_code=400, content={"message": "Course already exists"}
-                )
+                    status_code=400,
+                    content={"message": "Course already exists"})
         ori_courses.append(course_info)
-        conf.set_key_value("courses", ori_courses)
+        conf.set_key_value(username, "courses", ori_courses)
         return JSONResponse(status_code=200, content={"message": "success"})
 
 
@@ -294,21 +413,29 @@ async def create_course(course: Course):
     tags=["course"],
     summary="Modify a course",
     description="Modify a course.",
+    dependencies=[Depends(verify_cookie)],
 )
-async def modify_course(index: int, course: Course):
-    if "courses" not in conf.get_conf():
-        return JSONResponse(status_code=404, content={"message": "Courses not found"})
-    courses = conf.get_conf()["courses"]
+async def modify_course(index: int,
+                        course: Course,
+                        username: str = Depends(verify_cookie)):
+    conf_content = conf.get_conf(username)
+
+    if "courses" not in conf_content:
+        return JSONResponse(status_code=404,
+                            content={"message": "Courses not found"})
+    courses = conf_content["courses"]
     if not isinstance(courses, List):
-        return JSONResponse(
-            status_code=404, content={"message": "Courses type should be list"}
-        )
+        return JSONResponse(status_code=404,
+                            content={"message": "Courses type should be list"})
     if index >= len(courses) or index < 0:
-        return JSONResponse(status_code=404, content={"message": "Course not found"})
+        return JSONResponse(status_code=404,
+                            content={"message": "Course not found"})
     if course.type not in ["ann", "ass", "dis"]:
-        return JSONResponse(status_code=400, content={"message": "Invalid course type"})
+        return JSONResponse(status_code=400,
+                            content={"message": "Invalid course type"})
     if course.name == "":
-        return JSONResponse(status_code=400, content={"message": "Empty course name"})
+        return JSONResponse(status_code=400,
+                            content={"message": "Empty course name"})
     course_info = {
         "course_id": course.id,
         "course_name": course.name,
@@ -319,17 +446,13 @@ async def modify_course(index: int, course: Course):
     }
     # Test if the course already exists
     for i in range(len(courses)):
-        if (
-            i != index
-            and courses[i]["course_id"] == course.id
-            and courses[i]["type"] == course.type
-        ):
-            return JSONResponse(
-                status_code=400, content={"message": "Course already exists"}
-            )
+        if (i != index and courses[i]["course_id"] == course.id
+                and courses[i]["type"] == course.type):
+            return JSONResponse(status_code=400,
+                                content={"message": "Course already exists"})
 
     courses[index] = course_info
-    conf.set_key_value("courses", courses)
+    conf.set_key_value(username, "courses", courses)
     return JSONResponse(status_code=200, content={"message": "success"})
 
 
@@ -338,14 +461,17 @@ async def modify_course(index: int, course: Course):
     tags=["canvas"],
     summary="Get the dashboard",
     description="Get the dashboard.",
+    dependencies=[Depends(verify_cookie)],
 )
-async def get_dashboard(cache: bool = False, mode: str = "html"):
+async def get_dashboard(cache: bool = False,
+                        mode: str = "html",
+                        username: str = Depends(verify_cookie)):
     if cache:
         # Use cache
-        if path.exists("./canvas/cache.json"):
-            with open(
-                "./canvas/cache.json", "r", encoding="utf-8", errors="ignore"
-            ) as f:
+        cache_file = cache_file_name(username)
+        if path.exists(cache_file):
+            # TODO: change into user-identical filename
+            with open(cache_file, "r", encoding="utf-8", errors="ignore") as f:
                 obj = json.load(f)
                 if mode == "html":
                     return {"data": obj["html"]}
@@ -353,12 +479,13 @@ async def get_dashboard(cache: bool = False, mode: str = "html"):
                     return {"data": obj["json"]}
                 else:
                     return JSONResponse(
-                        status_code=400, content={"message": "Mode not supported"}
-                    )
+                        status_code=400,
+                        content={"message": "Mode not supported"})
         else:
-            return JSONResponse(status_code=404, content={"message": "Cache not found"})
+            return JSONResponse(status_code=404,
+                                content={"message": "Cache not found"})
     # No cache
-    canvas = CanvasMGR(mode)
+    canvas = CanvasMGR(username, mode)
     return {"data": canvas.get_response()}
 
 
@@ -367,26 +494,31 @@ async def get_dashboard(cache: bool = False, mode: str = "html"):
     tags=["canvas"],
     summary="Check some task",
     description="Check some task.",
+    dependencies=[Depends(verify_cookie)],
 )
-async def set_check(name: str, check: Check):
+async def set_check(name: str,
+                    check: Check,
+                    username: str = Depends(verify_cookie)):
+    conf_content = conf.get_conf(username)
     """
     Check
 
     Only 1,2,3 is available
     """
     if check.type < 0 or check.type > 3:
-        return JSONResponse(status_code=400, content={"message": "Invalid check type"})
+        return JSONResponse(status_code=400,
+                            content={"message": "Invalid check type"})
     all_checks = [{"name": name, "type": check.type}]
-    if "checks" in conf.get_conf():
-        ori_checks = conf.get_conf()["checks"]
+    if "checks" in conf_content:
+        ori_checks = conf_content["checks"]
         if not isinstance(ori_checks, List):
             return JSONResponse(
-                status_code=404, content={"message": "Courses type should be list"}
-            )
+                status_code=404,
+                content={"message": "Courses type should be list"})
         for ori_check in ori_checks:
             if ori_check["name"] != name:
                 all_checks.append(ori_check)
-    conf.set_key_value("checks", all_checks)
+    conf.set_key_value(username, "checks", all_checks)
     return JSONResponse(status_code=200, content={"message": "success"})
 
 
@@ -395,14 +527,17 @@ async def set_check(name: str, check: Check):
     tags=["canvas"],
     summary="Get the position",
     description="Get the position.",
+    dependencies=[Depends(verify_cookie)],
 )
-async def get_position():
+async def get_position(username: str = Depends(verify_cookie)):
+    conf_content = conf.get_conf(username)
     """
     Get position
     """
-    if "position" not in conf.configuration:
-        return JSONResponse(status_code=404, content={"message": "Position not found"})
-    return conf.get_conf()["position"]
+    if "position" not in conf_content:
+        return JSONResponse(status_code=404,
+                            content={"message": "Position not found"})
+    return conf_content["position"]
 
 
 @app.put(
@@ -410,12 +545,15 @@ async def get_position():
     tags=["canvas"],
     summary="Set the position",
     description="Set the position.",
+    dependencies=[Depends(verify_cookie)],
 )
-async def update_position(position: Position):
+async def update_position(position: Position,
+                          username: str = Depends(verify_cookie)):
     """
     Set position
     """
     conf.set_key_value(
+        username,
         "position",
         {
             "left": position.left,
@@ -432,13 +570,15 @@ async def update_position(position: Position):
     tags=["file"],
     summary="Upload file",
     description="Upload file to public/res.",
+    dependencies=[Depends(verify_cookie)],
 )
 async def upload_file(file: UploadFile):
     if not path.exists("./public/res"):
         mkdir("./public/res")
     tmp = check_file(file.filename)
     if tmp == "Illegal":
-        return JSONResponse(status_code=404, content={"message": "Illegal file name"})
+        return JSONResponse(status_code=404,
+                            content={"message": "Illegal file name"})
     with open(f"./public/res/{file.filename}", "wb") as out_file:
         out_file.write(file.file.read())
     return JSONResponse(status_code=200, content={"message": "success"})
@@ -449,16 +589,19 @@ async def upload_file(file: UploadFile):
     tags=["file"],
     summary="Delete file",
     description="Delete file in public/res.",
+    dependencies=[Depends(verify_cookie)],
 )
 async def delete_file(name: str):
     tmp = check_file(name)
     if tmp == "Illegal":
-        return JSONResponse(status_code=404, content={"message": "Illegal file name"})
+        return JSONResponse(status_code=404,
+                            content={"message": "Illegal file name"})
     if path.exists(f"./public/res/{name}"):
         remove(f"./public/res/{name}")
         return JSONResponse(status_code=200, content={"message": "success"})
     else:
-        return JSONResponse(status_code=404, content={"message": "File not found"})
+        return JSONResponse(status_code=404,
+                            content={"message": "File not found"})
 
 
 @app.get(
@@ -466,6 +609,7 @@ async def delete_file(name: str):
     tags=["file"],
     summary="Get file list",
     description="Get files in public/res.",
+    dependencies=[Depends(verify_cookie)],
 )
 async def get_file_list():
     if path.exists("./public/res"):
@@ -480,12 +624,14 @@ async def get_file_list():
     tags=["file"],
     summary="Get file",
     description="Get file in public/res.",
+    dependencies=[Depends(verify_cookie)],
 )
 async def get_file(name: str):
     if path.exists(f"./public/res/{name}"):
         return FileResponse(f"./public/res/{name}")
     else:
-        return JSONResponse(status_code=404, content={"message": "File not found"})
+        return JSONResponse(status_code=404,
+                            content={"message": "File not found"})
 
 
 @app.post(
@@ -493,6 +639,7 @@ async def get_file(name: str):
     tags=["misc"],
     summary="Open URL in web browser",
     description="Open URL in web browser.",
+    dependencies=[Depends(verify_cookie)],
 )
 async def open_url(data: URL):
     import webbrowser
@@ -507,4 +654,17 @@ async def open_url(data: URL):
         return JSONResponse(status_code=200, content={"message": "Opened"})
     except Exception as e:
         logging.warning(e)
-        return JSONResponse(status_code=400, content={"message": "Failed to open"})
+        return JSONResponse(status_code=400,
+                            content={"message": "Failed to open"})
+
+
+if __name__ == "__main__":
+    LOGGING_CONFIG["formatters"]["default"][
+        "fmt"] = "%(asctime)s %(levelprefix)s %(message)s"
+    LOGGING_CONFIG["formatters"]["access"][
+        "fmt"] = '%(asctime)s %(levelprefix)s %(client_addr)s - "%(request_line)s" %(status_code)s'
+    uvicorn.run(
+        app=app,
+        host=uvicorn_domain,
+        port=uvicorn_port,
+    )

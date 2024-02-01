@@ -5,7 +5,7 @@ from math import floor
 import requests
 import json
 import os
-
+from users import conf_file_name, cache_file_name
 """
 Canvas Manager
 
@@ -22,12 +22,15 @@ class CanvasMGR:
     url = ""
     output_mode = "html"
 
-    def __init__(self, output_mode: str = "html") -> None:
+    def __init__(self, username: str, output_mode: str = "html") -> None:
+        self.username = username
+        self.config_file_path = conf_file_name(username)
+        self.cache_file_name = cache_file_name(username)
         if not os.path.exists("canvas"):
             os.mkdir("canvas")
-        # Check whether config file exists
-        if not os.path.exists("./user_conf.json"):
-            raise Exception("No configuration file found")
+        if not os.path.exists(self.config_file_path):
+            raise Exception(
+                f"No configuration file found for user: {username}")
         self.output_mode = output_mode
         self.reset()
 
@@ -35,7 +38,12 @@ class CanvasMGR:
         self.g_out = ""
         self.g_tformat = "relative"
 
-        with open("./user_conf.json", "r", encoding="utf-8", errors="ignore") as f:
+        # with open("./user_conf.json", "r", encoding="utf-8", errors="ignore") as f:
+        # self.ucommand = json.load(f)
+        with open(self.config_file_path,
+                  "r",
+                  encoding="utf-8",
+                  errors="ignore") as f:
             self.ucommand = json.load(f)
 
         self.url = self.ucommand["url"]
@@ -56,7 +64,8 @@ class CanvasMGR:
         Dump HTML output
         """
         obj = {"html": self.g_out[:-1], "json": "{}"}
-        with open("./canvas/cache.json", "w", encoding="utf-8", errors="ignore") as f:
+        with open(self.cache_file_name, "w", encoding="utf-8",
+                  errors="ignore") as f:
             json.dump(obj, f, ensure_ascii=False, indent=4)
         return self.g_out[:-1]
 
@@ -84,20 +93,21 @@ class CanvasMGR:
                         self.url,
                         self.usercheck,
                         g_tformat=self.g_tformat,
-                    )
-                )
+                    ))
         except Exception as e:
             raise Exception("invalid course", e)
 
         now_root = self.now.replace(hour=0, minute=0, second=0, microsecond=0)
 
-        sem_begin = datetime.strptime(self.ucommand["semester_begin"], "%Y-%m-%d")
+        sem_begin = datetime.strptime(self.ucommand["semester_begin"],
+                                      "%Y-%m-%d")
 
         bdays = (now_root - sem_begin).days
         bweeks = floor(bdays / 7) + 1
 
         if "title" in self.ucommand:
-            self.print_own(f"<h1>{self.ucommand['title']} - Week {bweeks}</h1>")
+            self.print_own(
+                f"<h1>{self.ucommand['title']} - Week {bweeks}</h1>")
         else:
             self.print_own(f"<h1>Canvas Dashboard - Week {bweeks}</h1>")
 
@@ -114,9 +124,13 @@ class CanvasMGR:
 
 
 class apilink:
-    def __init__(
-        self, course: dict, bid: str, url: str, user_check, g_tformat="relative"
-    ) -> None:
+
+    def __init__(self,
+                 course: dict,
+                 bid: str,
+                 url: str,
+                 user_check,
+                 g_tformat="relative") -> None:
         self.headers = {"Authorization": f"Bearer {bid}"}
 
         self.course = course["course_id"]
@@ -169,9 +183,9 @@ class apilink:
 
     def relative_date(self, rtime: datetime):
         # Generate relative date
-        delta = rtime.replace(
-            hour=0, minute=0, second=0, microsecond=0
-        ) - self.now.replace(hour=0, minute=0, second=0, microsecond=0)
+        delta = rtime.replace(hour=0, minute=0, second=0,
+                              microsecond=0) - self.now.replace(
+                                  hour=0, minute=0, second=0, microsecond=0)
         wp = int((delta.days + self.now.weekday()) / 7)
         if wp == 0:
             # Current week
@@ -198,8 +212,7 @@ class apilink:
 
     def send(self, url):
         return requests.get(url, headers=self.headers).content.decode(
-            encoding="utf-8", errors="ignore"
-        )
+            encoding="utf-8", errors="ignore")
 
     def _cmp_ass(self, el):
         if el["due_at"]:
@@ -238,8 +251,8 @@ class apilink:
                 for k in a:
                     if k["due_at"]:
                         dttime = datetime.strptime(
-                            k["due_at"], "%Y-%m-%dT%H:%M:%SZ"
-                        ) + timedelta(hours=8)
+                            k["due_at"],
+                            "%Y-%m-%dT%H:%M:%SZ") + timedelta(hours=8)
                         if dttime < self.now:
                             continue
                         self.ass_data.append(k)
@@ -263,14 +276,12 @@ class apilink:
                 break
             maxnum -= 1
             submit_msg = ""
-            if ("has_submitted_submissions" in ass) and ass[
-                "has_submitted_submissions"
-            ]:
+            if ("has_submitted_submissions"
+                    in ass) and ass["has_submitted_submissions"]:
                 submit_msg = "(Submittable)"
             if ass["due_at"]:
                 dttime = datetime.strptime(
-                    ass["due_at"], "%Y-%m-%dT%H:%M:%SZ"
-                ) + timedelta(hours=8)
+                    ass["due_at"], "%Y-%m-%dT%H:%M:%SZ") + timedelta(hours=8)
                 tformat = self.g_tformat
                 if "timeformat" in self.other:
                     tformat = self.other["timeformat"]
@@ -314,9 +325,8 @@ class apilink:
                 break
             maxnum -= 1
             check_type = self.get_check_status(f"ann{an['id']}")
-            self.output += self.dump_span(
-                check_type, f"ann{an['id']}", an["title"], an["html_url"]
-            )
+            self.output += self.dump_span(check_type, f"ann{an['id']}",
+                                          an["title"], an["html_url"])
 
     def collect_discussion(self):
         self.cstate = "Discussion"
@@ -345,9 +355,8 @@ class apilink:
                 break
             maxnum -= 1
             check_type = self.get_check_status(f"dis{d['id']}")
-            self.output += self.dump_span(
-                check_type, f"dis{d['id']}", d["title"], d["html_url"]
-            )
+            self.output += self.dump_span(check_type, f"dis{d['id']}",
+                                          d["title"], d["html_url"])
 
     def print_out(self):
         if self.output:
