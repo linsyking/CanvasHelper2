@@ -448,12 +448,12 @@ async def modify_course(index: int,
         return JSONResponse(status_code=400,
                             content={"message": "Empty course name"})
     course_info = {
-        "course_id": course.id,
-        "course_name": course.name,
+        "course_id": htmlspecialchars(course.id),  # XSS protection
+        "course_name": htmlspecialchars(course.name),
         "type": course.type,
         "maxshow": course.maxshow,
         "order": course.order,
-        "msg": course.msg,
+        "msg": htmlspecialchars(course.msg),
     }
     # Test if the course already exists
     for i in range(len(courses)):
