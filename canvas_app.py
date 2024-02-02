@@ -4,6 +4,7 @@ from fastapi import FastAPI, Request, UploadFile, HTTPException, Depends, Cookie
 from fastapi.responses import FileResponse, HTMLResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from users import cache_file_name, create_user, user_exists
 import uvicorn
 from uvicorn.config import LOGGING_CONFIG
 import requests
@@ -20,7 +21,6 @@ import logging
 from typing import List
 from global_config import *
 from auth import *
-from users import cache_file_name
 """
 Local function
 """
@@ -79,6 +79,15 @@ def verify_cookie(auth_token: str = Cookie(None)):  # Require cookie object
 
 
 # Endpoints
+@app.post("/signup")
+async def signup(response: Response,
+                 form_data: OAuth2PasswordRequestForm = Depends()):
+    if user_exists(form_data.username):
+        raise HTTPException(status_code=400, detail="Username already taken")
+    create_user(form_data.username, form_data.password)
+    return {"message": "Signed up"}
+
+
 @app.post("/login")
 async def login(response: Response,
                 form_data: OAuth2PasswordRequestForm = Depends(),

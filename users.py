@@ -3,6 +3,7 @@ import base64
 import json
 from os import path
 from global_config import *
+# from auth import get_password_hash
 
 
 def conf_file_name(username):
@@ -17,14 +18,22 @@ def cache_file_name(username):
         username.encode("ascii")).decode("utf-8") + '.json'
 
 
-# def init_user(username):
-#     if path.exists(conf_file_name(username)):
-#         return True
-#     else:
-#         # create new file
-#         with open(conf_file_name(username), 'w') as f:
-#             f.write("{ \"version\": 1 }")
-#             return False
+def create_user(username, password):
+    if user_exists(username):
+        return False
+    else:
+        # create new file
+        initial_conf = {
+            "version": 1,
+            "username": username,
+            "hashed_password": pwd_context.hash(password),
+            "semester_begin": "",
+            "url": "",
+            "bid": "",
+        }
+        # dump initial_conf to file as json
+        with open(conf_file_name(username), 'w') as f:
+            json.dump(initial_conf, f, ensure_ascii=False, indent=4)
 
 
 def get_hashed_password(username):
