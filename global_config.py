@@ -11,8 +11,8 @@ uvicorn_port = 9283
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 ALGORITHM = "HS256"
 
-ACCESS_TOKEN_EXPIRE_MINUTES = 1  # 30 minutes
-REFRESH_TOKEN_EXPIRE_DAYS = 1  # 30 days
+ACCESS_TOKEN_EXPIRE_MINUTES = 24 * 60  # 1 day
+REFRESH_TOKEN_EXPIRE_DAYS = 30  # 30 days
 
 ALLOWED_EXTENSION = {
     "png",
