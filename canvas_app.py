@@ -40,6 +40,11 @@ def check_file(filename):
         return filename
 
 
+def htmlspecialchars(text):
+    return (text.replace("&", "&amp;").replace('"', "&quot;").replace(
+        "<", "&lt;").replace(">", "&gt;"))
+
+
 """
 Canvas App
 
@@ -393,7 +398,7 @@ async def create_course(course: Course,
         "type": course.type,
         "maxshow": course.maxshow,
         "order": course.order,
-        "msg": course.msg,
+        "msg": htmlspecialchars(course.msg),  # XSS protection
     }
     if "courses" not in conf_content:
         ori_courses = []
