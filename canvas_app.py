@@ -393,8 +393,8 @@ async def create_course(course: Course,
         return JSONResponse(status_code=400,
                             content={"message": "Empty course name"})
     course_info = {
-        "course_id": htmlspecialchars(course.id),  # XSS protection
-        "course_name": htmlspecialchars(course.name),
+        "course_id": course.id,
+        "course_name": htmlspecialchars(course.name),  # XSS protection
         "type": course.type,
         "maxshow": course.maxshow,
         "order": course.order,
@@ -448,8 +448,8 @@ async def modify_course(index: int,
         return JSONResponse(status_code=400,
                             content={"message": "Empty course name"})
     course_info = {
-        "course_id": htmlspecialchars(course.id),  # XSS protection
-        "course_name": htmlspecialchars(course.name),
+        "course_id": course.id,
+        "course_name": htmlspecialchars(course.name),  # XSS protection
         "type": course.type,
         "maxshow": course.maxshow,
         "order": course.order,
