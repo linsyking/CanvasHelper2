@@ -393,12 +393,12 @@ async def create_course(course: Course,
         return JSONResponse(status_code=400,
                             content={"message": "Empty course name"})
     course_info = {
-        "course_id": course.id,
-        "course_name": course.name,
+        "course_id": htmlspecialchars(course.id),  # XSS protection
+        "course_name": htmlspecialchars(course.name),
         "type": course.type,
         "maxshow": course.maxshow,
         "order": course.order,
-        "msg": htmlspecialchars(course.msg),  # XSS protection
+        "msg": htmlspecialchars(course.msg),
     }
     if "courses" not in conf_content:
         ori_courses = []
