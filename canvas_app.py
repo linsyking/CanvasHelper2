@@ -34,13 +34,13 @@ def check_file(filename):
     if ("." not in filename
             or filename.rsplit(".", 1)[1].lower() not in ALLOWED_EXTENSION):
         return "Illegal"
-    if not fullPath.startswith(base_path):  # the failure happens here
+    if not fullPath.startswith(base_path):
         return "Illegal"
     else:
         return filename
 
 
-def htmlspecialchars(text):
+def htmlspecialchars(text):  # XSS protection
     return (text.replace("&", "&amp;").replace('"', "&quot;").replace(
         "<", "&lt;").replace(">", "&gt;"))
 
@@ -80,13 +80,12 @@ def verify_cookie(auth_token: str = Cookie(None)):  # Require cookie object
     if not username:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
                             detail="Not authenticated")
-    return verify_login(auth_token)  # Pass in string
+    return username  # Pass in string
 
 
 # Endpoints
 @app.post("/signup")
-async def signup(response: Response,
-                 form_data: OAuth2PasswordRequestForm = Depends()):
+async def signup(form_data: OAuth2PasswordRequestForm = Depends()):
     if user_exists(form_data.username):
         raise HTTPException(status_code=400, detail="Username already taken")
     create_user(form_data.username, form_data.password)
