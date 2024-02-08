@@ -74,19 +74,8 @@ conf = ConfigMGR()
 update()
 
 
-def verify_cookie(auth_token: str = Cookie(None),
-                  referer: str = Header(None)):  # Require cookie object
-    # verify_login(), and check referer for cookie CSRF protection
-    if not auth_token:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
-                            detail="Not authenticated")
-    if not referer:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
-                            detail="CSRF protection: Missing Referer header.")
-    if not referer.startswith(front_end_domain):
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
-                            detail="CSRF protection: Invalid Referer header.")
-
+def verify_cookie(auth_token: str = Cookie(None)):  # Require cookie object
+    # Same as verify_login, but for interface dependency
     username = verify_login(auth_token)
     if not username:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
