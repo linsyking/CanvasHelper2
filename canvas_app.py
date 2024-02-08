@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from fastapi import FastAPI, Request, UploadFile, HTTPException, Depends, Cookie, status, Response
+from fastapi import FastAPI, Request, UploadFile, Header, HTTPException, Depends, Cookie, status, Response
 from fastapi.responses import FileResponse, HTMLResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
@@ -143,7 +143,7 @@ async def login(response: Response,
 @app.post(
     "/refresh",
     summary="Refresh the access token",
-    dependencie="Refresh the access token",
+    description="Refresh the access token",
     tags=["auth"],
     dependencies=[Depends(verify_cookie)],
 )
