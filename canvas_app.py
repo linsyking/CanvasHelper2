@@ -84,7 +84,12 @@ def verify_cookie(auth_token: str = Cookie(None)):  # Require cookie object
 
 
 # Endpoints
-@app.post("/signup")
+@app.post(
+    "/signup",
+    summary="Sign up",
+    description="Sign up",
+    tags=["auth"],
+)
 async def signup(form_data: OAuth2PasswordRequestForm = Depends()):
     if user_exists(form_data.username):
         raise HTTPException(status_code=400, detail="Username already taken")
@@ -92,7 +97,12 @@ async def signup(form_data: OAuth2PasswordRequestForm = Depends()):
     return {"message": "Signed up"}
 
 
-@app.post("/login")
+@app.post(
+    "/login",
+    summary="Login",
+    description="Login",
+    tags=["auth"],
+)
 async def login(response: Response,
                 form_data: OAuth2PasswordRequestForm = Depends(),
                 auth_token: str = Cookie(None)):
@@ -134,7 +144,13 @@ async def login(response: Response,
     return {"message": "Logged in"}
 
 
-@app.post("/refresh")
+@app.post(
+    "/refresh",
+    summary="Refresh the access token",
+    dependencie="Refresh the access token",
+    tags=["auth"],
+    dependencies=[Depends(verify_cookie)],
+)
 async def refresh_token(response: Response, refresh_token: str = Cookie(None)):
     if not refresh_token:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
