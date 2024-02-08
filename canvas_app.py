@@ -111,10 +111,6 @@ async def login(response: Response,
         html_content = f'<script>location.href = "{front_end_domain}"</script>'
         return HTMLResponse(content=html_content,
                             status_code=status.HTTP_200_OK)
-        # response = RedirectResponse(url=front_end_domain,
-        #                             status_code=status.HTTP_302_FOUND)
-        # response.headers["Access-Control-Allow-Origin"] = front_end_domain
-        # return response
 
     user = authenticate_user(form_data.username, form_data.password)
     if not user:
