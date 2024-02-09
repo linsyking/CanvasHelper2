@@ -137,11 +137,13 @@ async def login(response: Response,
     response.set_cookie(key="auth_token",
                         value=access_token,
                         secure=True,
-                        samesite='None')
+                        samesite='None',
+                        httponly=True)  # XSS protection
     response.set_cookie(key="refresh_token",
                         value=refresh_token,
                         secure=True,
-                        samesite='None')
+                        samesite='None',
+                        httponly=True)  # XSS protection
 
     return {"message": "Logged in"}
 
@@ -177,7 +179,8 @@ async def refresh_token(response: Response, refresh_token: str = Cookie(None)):
     response.set_cookie(key="auth_token",
                         value=new_access_token,
                         secure=True,
-                        samesite='None')
+                        samesite='None',
+                        httponly=True)  # XSS protection
     return {"message": "Refreshed token"}
 
 
