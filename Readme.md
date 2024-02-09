@@ -12,12 +12,39 @@ New generation of Canvas Helper backend. Web-based, support Linux, Windows and M
 
 ## Workflow
 
-If you only want to run the backend on your machine and use the frontend on our server, do the following:
+### Sharing public server for multiple users
 
-1. Follow [documentation](https://github.com/linsyking/CanvasHelper2#run-backend), run the backend at port `9283`
-2. Go to <https://canvashelper2.web.app/canvashelper/> to configure your CanvasHelper
-3. Go to <https://canvashelper2.web.app/> to see the final result
-4. Deploy Canvas Helper on your desktop with [wiget](https://github.com/linsyking/CanvasHelper2/#use-canvashelper-in-)
+If you want to use our server and use the frontend hosted on our website:
+
+1.  Run `python3 canvas_app.py`, which will start the uvicorn server on server_ip:9283
+2.  Open https://canvashelper.netlify.app/signup to sign up for an account. A popup window will show up to set the backend URL. Enter the backend URL in form of `https://backend.com/`
+3.  For account registration, the following information is required:
+    1.  A unique username
+    2.  Password
+    3.  Canvas LMS URL
+    4.  Canvas access key
+4.  When successfully signed up, you will be redirected to https://canvashelper.netlify.app/login for login.
+5.  You will be kept logged in if you regularly open CanvasHelper dashboard. If you haven't open it for some time (by default, 1 day), you will have to login again for security reasons (The Canvas access key provides full control over your Canvas account, so there are effective security precautions to protect the key).
+6.  Visit https://canvashelper.netlify.app/canvashelper to configure CanvasHelper and courses information
+7.  CanvasHelper dashboard is ready on https://canvashelper.netlify.app/
+8.  Deploy Canvas Helper on your desktop with [wiget](https://github.com/linsyking/CanvasHelper2/#use-canvashelper-in-)
+
+### Running locally
+
+If you want to run the backend on your machine and use the frontend hosted on our website:
+
+1. Run `python3 canvas_app.py`, which will start the uvicorn server on localhost:9283
+2. Open https://canvashelper.netlify.app/signup to sign up for an account. A popup window will show up to set the backend URL. Click `confirm` or close the popup window to use default settings
+3. For account registration, the following information is required:
+   1.  A username
+   2.  Password
+   3.  Canvas LMS URL
+   4.  Canvas access key
+4. When successfully signed up, you will be redirected to https://canvashelper.netlify.app/login for login.
+5. You will be kept logged in if you regularly open CanvasHelper dashboard. If you haven't open it for some time (by default, 1 day), you will have to login again for security reasons. When running locally, expiration time of the auth tokens can be edited in global_config.py.
+6. Visit https://canvashelper.netlify.app/canvashelper to configure CanvasHelper and courses information
+7. CanvasHelper dashboard is ready on https://canvashelper.netlify.app/
+8. Deploy Canvas Helper on your desktop with [wiget](https://github.com/linsyking/CanvasHelper2/#use-canvashelper-in-)
 
 ## Dev Workflow
 
