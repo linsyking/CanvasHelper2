@@ -119,12 +119,18 @@ async def login(response: Response,
 
     # Generate access token
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-    access_token = create_access_token(data={"sub": user},
+    access_token = create_access_token(data={
+        "sub": user,
+        "type": "access_token"
+    },
                                        expires_delta=access_token_expires)
 
     # Generate refresh token
     refresh_token_expires = timedelta(days=REFRESH_TOKEN_EXPIRE_DAYS)
-    refresh_token = create_refresh_token(data={"sub": user},
+    refresh_token = create_refresh_token(data={
+        "sub": user,
+        "type": "refresh_token"
+    },
                                          expires_delta=refresh_token_expires)
 
     # Set cookies for both access and refresh tokens
@@ -153,6 +159,9 @@ async def refresh_token(response: Response, refresh_token: str = Cookie(None)):
                             detail="Refresh token missing")
     try:
         payload = jwt.decode(refresh_token, SECRET_KEY, algorithms=[ALGORITHM])
+        if payload.get("type") != "refresh_token":
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
+                                detail="Invalid refresh token")
         username: str = payload.get("sub")
         if not username:
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,

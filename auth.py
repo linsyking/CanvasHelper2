@@ -63,9 +63,10 @@ def verify_login(auth_token):
     if not auth_token:  # No auth_token in cookie
         return False
     try:
-        username: str = jwt.decode(auth_token,
-                                   SECRET_KEY,
-                                   algorithms=[ALGORITHM]).get("sub")
+        payload = jwt.decode(auth_token, SECRET_KEY, algorithms=[ALGORITHM])
+        if payload.get("type") != "access_token":
+            return False
+        username: str = payload.get("sub")
         if not username:
             return False
     except JWTError:
