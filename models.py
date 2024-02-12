@@ -1,9 +1,4 @@
 #!/usr/bin/env python3
-"""
-@Author: King
-@Date: 2023-01-04 21:24:24
-@Email: linsy_king@sjtu.edu.cn
-"""
 
 from pydantic import BaseModel, Field
 from typing import Union

@@ -8,8 +8,8 @@ from canvas_mgr import CanvasMGR
 import urllib.parse
 from models import Position, Check, Course, URL
 from fastapi.responses import JSONResponse
-from os import path, listdir, remove, mkdir
-from updater import update
+from os import path, listdir, remove, makedirs
+
 import json
 import logging
 from typing import List
@@ -75,9 +75,6 @@ app.add_middleware(
 logging.basicConfig(level=logging.INFO, format="[%(levelname)s] %(message)s")
 
 conf = ConfigMGR()
-
-# Self Update
-update()
 
 
 @app.get(
@@ -376,7 +373,7 @@ async def set_check(name: str, check: Check):
     """
     Check
 
-    Only 1,2,3 is available
+    Only 1, 2, 3 is available
     """
     if check.type < 0 or check.type > 3:
         return JSONResponse(status_code=400, content={"message": "Invalid check type"})
@@ -475,7 +472,7 @@ async def get_file_list():
     if path.exists("./public/res"):
         return {"files": listdir("./public/res")}
     else:
-        mkdir("./public/res")
+        makedirs("./public/res", exist_ok=True)
         return {"files": []}
 
 

@@ -26,3 +26,8 @@ jobs:
       - name: Test run
         run: |
           timeout 3 uvicorn canvas_app:app --port 9283 || [ $? -eq 124 ]
+      - name: Build executables
+        run: |
+          pip install pyinstaller
+          pyinstaller -F start.py
+          timeout 3 dist/start --port 9283 || [ $? -eq 124 ]
