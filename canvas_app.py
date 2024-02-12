@@ -36,17 +36,21 @@ ALLOWED_EXTENSION = {
 
 # INFO: Safety check for file
 def check_file(filename):
+    flag = True
     base_path = "/public/res/"
+    base_path_win = "\\public\\res\\"
     fullPath = path.normpath(path.join(base_path, filename))
     if (
         not "." in filename
         or not filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSION
     ):
-        return "Illegal"
-    if not fullPath.startswith(base_path):
-        return "Illegal"
+        flag = False
+        return (flag, filename)
+    if not fullPath.startswith(base_path) and not fullPath.startswith(base_path_win):
+        flag = False
+        return (flag, filename)
     else:
-        return filename
+        return (flag, filename)
 
 
 """
@@ -436,8 +440,8 @@ async def update_position(position: Position):
 async def upload_file(file: UploadFile):
     if not path.exists("./public/res"):
         mkdir("./public/res")
-    tmp = check_file(file.filename)
-    if tmp == "Illegal":
+    flag, file.filename = check_file(file.filename)
+    if flag == False:
         return JSONResponse(status_code=404, content={"message": "Illegal file name"})
     with open(f"./public/res/{file.filename}", "wb") as out_file:
         out_file.write(file.file.read())
@@ -451,8 +455,8 @@ async def upload_file(file: UploadFile):
     description="Delete file in public/res.",
 )
 async def delete_file(name: str):
-    tmp = check_file(name)
-    if tmp == "Illegal":
+    flag, name = check_file(name)
+    if flag == False:
         return JSONResponse(status_code=404, content={"message": "Illegal file name"})
     if path.exists(f"./public/res/{name}"):
         remove(f"./public/res/{name}")
@@ -482,6 +486,9 @@ async def get_file_list():
     description="Get file in public/res.",
 )
 async def get_file(name: str):
+    flag, name = check_file(name)
+    if flag == False:
+        return JSONResponse(status_code=404, content={"message": "Illegal file name"})
     if path.exists(f"./public/res/{name}"):
         return FileResponse(f"./public/res/{name}")
     else:
