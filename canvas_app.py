@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from fastapi import FastAPI, Request, UploadFile, Security, HTTPException, Depends, status, Form
+from fastapi import FastAPI, Request, UploadFile, Security, HTTPException, Depends, status
 from fastapi.responses import FileResponse, HTMLResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
@@ -12,7 +12,7 @@ from jose import jwt, JWTError
 from config_mgr import ConfigMGR
 from canvas_mgr import CanvasMGR
 import urllib.parse
-from models import Position, Check, Course, URL, TokenRequest
+from models import Position, Check, Course, URL
 from fastapi.responses import JSONResponse
 from os import path, listdir, remove, mkdir
 from updater import update
@@ -162,8 +162,8 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends(),
     tags=["auth"],
     dependencies=[Depends(verify_token)],
 )
-async def refresh_token(request: TokenRequest):
-    refresh_token = request.refresh_token
+async def refresh_token(form_data: OAuth2PasswordRequestForm = Depends()):
+    refresh_token = form_data.password  # Actually refresh_token, but treated as secure as password
     if not refresh_token:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
                             detail="Refresh token missing")
