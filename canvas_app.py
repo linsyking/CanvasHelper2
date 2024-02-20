@@ -62,6 +62,17 @@ def verify_token(auth_token: str = Security(oauth2_scheme)):
     return username
 
 
+def verify_bid(url, bid):
+    headers = {"Authorization": f'Bearer {bid}'}
+    url = str(url)
+    if url.find("http://") != 0 and url.find("https://") != 0:
+        # Invalid protocal
+        url = "https://" + url
+    res = requests.get(urllib.parse.urljoin(url, "api/v1/accounts"),
+                       headers=headers).status_code
+    return res == 200
+
+
 # Endpoints
 @app.post(
     "/signup",
@@ -259,16 +270,9 @@ async def verify_config(username: str = Depends(verify_token)):
         return JSONResponse(status_code=400,
                             content={"message": "background not set"})
     # Test bid
-
-    headers = {"Authorization": f'Bearer {conf_content["bid"]}'}
     url = str(conf_content["url"])
-    if url.find("http://") != 0 and url.find("https://") != 0:
-        # Invalid protocal
-        url = "https://" + url
-        conf.set_key_value(username, "url", url)
-    res = requests.get(urllib.parse.urljoin(url, "api/v1/accounts"),
-                       headers=headers).status_code
-    if res == 200:
+    conf.set_key_value(username, "url", url)
+    if verify_bid(url, conf_content["bid"]):
         return JSONResponse(status_code=200, content={"message": "success"})
     else:
         return JSONResponse(status_code=400,
