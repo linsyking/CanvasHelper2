@@ -4,21 +4,22 @@ from fastapi import FastAPI, Request, UploadFile, Security, HTTPException, Depen
 from fastapi.responses import FileResponse, HTMLResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
-from users import cache_file_name, create_user, user_exists
 import uvicorn
 from uvicorn.config import LOGGING_CONFIG
 import requests
 from jose import jwt, JWTError
-from config_mgr import ConfigMGR
-from canvas_mgr import CanvasMGR
+from typing import List
 import urllib.parse
-from models import Position, Check, Course, URL
 from fastapi.responses import JSONResponse
 from os import path, listdir, remove, mkdir
-from updater import update
-import json
 import logging
-from typing import List
+import json
+
+from users import cache_file_name, create_user, user_exists
+from models import Position, Check, Course, URL
+from config_mgr import ConfigMGR
+from canvas_mgr import CanvasMGR
+from updater import update
 from global_config import *
 from auth import *
 """
