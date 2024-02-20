@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from fastapi import FastAPI, Request, UploadFile, Header, HTTPException, Depends, Cookie, status, Response
+from fastapi import FastAPI, Request, UploadFile, Security, HTTPException, Depends, status
 from fastapi.responses import FileResponse, HTMLResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
@@ -40,7 +40,8 @@ def check_file(filename):
         return filename
 
 
-def htmlspecialchars(text):  # XSS protection
+# XSS protection
+def htmlspecialchars(text):
     return (text.replace("&", "&amp;").replace('"', "&quot;").replace(
         "<", "&lt;").replace(">", "&gt;"))
 
@@ -64,7 +65,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/login")
 
 logging.basicConfig(level=logging.INFO, format="[%(levelname)s] %(message)s")
 
@@ -74,13 +75,14 @@ conf = ConfigMGR()
 update()
 
 
-def verify_cookie(auth_token: str = Cookie(None)):  # Require cookie object
+def verify_token(auth_token: str = Security(oauth2_scheme)):
     # Same as verify_login, but for interface dependency
     username = verify_login(auth_token)
     if not username:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
-                            detail="Not authenticated")
-    return username  # Pass in string
+                            detail="Not authenticated",
+                            headers={"WWW-Authenticate": "Bearer"})
+    return username
 
 
 # Endpoints
@@ -103,9 +105,8 @@ async def signup(form_data: OAuth2PasswordRequestForm = Depends()):
     description="Login",
     tags=["auth"],
 )
-async def login(response: Response,
-                form_data: OAuth2PasswordRequestForm = Depends(),
-                auth_token: str = Cookie(None)):
+async def login(form_data: OAuth2PasswordRequestForm = Depends(),
+                auth_token: str = Security(oauth2_scheme)):
     if verify_login(auth_token):
         # Return HTML to avoid POST to GET conversion
         html_content = f'<script>location.href = "{front_end_domain}"</script>'
@@ -133,19 +134,25 @@ async def login(response: Response,
     },
                                          expires_delta=refresh_token_expires)
 
-    # Set cookies for both access and refresh tokens
-    response.set_cookie(key="auth_token",
-                        value=access_token,
-                        secure=True,
-                        samesite='None',
-                        httponly=True)  # XSS protection
-    response.set_cookie(key="refresh_token",
-                        value=refresh_token,
-                        secure=True,
-                        samesite='None',
-                        httponly=True)  # XSS protection
+    # # Set cookies for both access and refresh tokens
+    # response.set_cookie(key="auth_token",
+    #                     value=access_token,
+    #                     secure=True,
+    #                     samesite='None',
+    #                     httponly=True)  # XSS protection
+    # response.set_cookie(key="refresh_token",
+    #                     value=refresh_token,
+    #                     secure=True,
+    #                     samesite='None',
+    #                     httponly=True)  # XSS protection
 
-    return {"message": "Logged in"}
+    return JSONResponse(content={
+        "message": "Logged in",
+        "access_token": access_token,
+        "refresh_token": refresh_token,
+        "token_type": "bearer"
+    },
+                        status_code=status.HTTP_200_OK)
 
 
 @app.post(
@@ -153,14 +160,16 @@ async def login(response: Response,
     summary="Refresh the access token",
     description="Refresh the access token",
     tags=["auth"],
-    dependencies=[Depends(verify_cookie)],
+    # dependencies=[Depends(verify_token)],
 )
-async def refresh_token(response: Response, refresh_token: str = Cookie(None)):
-    if not refresh_token:
+async def refresh_token(form_data: OAuth2PasswordRequestForm = Depends()):
+    if not form_data.refresh_token:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
                             detail="Refresh token missing")
     try:
-        payload = jwt.decode(refresh_token, SECRET_KEY, algorithms=[ALGORITHM])
+        payload = jwt.decode(form_data.refresh_token,
+                             SECRET_KEY,
+                             algorithms=[ALGORITHM])
         if payload.get("type") != "refresh_token":
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
                                 detail="Invalid refresh token")
@@ -176,16 +185,55 @@ async def refresh_token(response: Response, refresh_token: str = Cookie(None)):
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     new_access_token = create_access_token(data={"sub": username},
                                            expires_delta=access_token_expires)
-    response.set_cookie(key="auth_token",
-                        value=new_access_token,
-                        secure=True,
-                        samesite='None',
-                        httponly=True)  # XSS protection
-    return {"message": "Refreshed token"}
+    # response.set_cookie(key="auth_token",
+    #                     value=new_access_token,
+    #                     secure=True,
+    #                     samesite='None',
+    #                     httponly=True)  # XSS protection
+    return JSONResponse(content={
+        "message": "Refreshed token",
+        "new_access_token": new_access_token,
+    },
+                        status_code=status.HTTP_200_OK)
+
+
+# async def refresh_token(refresh_token: str):
+# if not refresh_token:
+#     raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
+#                         detail="Refresh token missing")
+# try:
+#     payload = jwt.decode(refresh_token, SECRET_KEY, algorithms=[ALGORITHM])
+#     if payload.get("type") != "refresh_token":
+#         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
+#                             detail="Invalid refresh token")
+#     username: str = payload.get("sub")
+#     if not username:
+#         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
+#                             detail="Not authenticated")
+# except JWTError:
+#     raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
+#                         detail="Invalid refresh token")
+
+# # Generate new access token
+# access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+# new_access_token = create_access_token(data={"sub": username},
+#                                        expires_delta=access_token_expires)
+# # response.set_cookie(key="auth_token",
+# #                     value=new_access_token,
+# #                     secure=True,
+# #                     samesite='None',
+# #                     httponly=True)  # XSS protection
+# return JSONResponse(content={
+#     "message": "Refreshed token",
+#     "message": "Logged in",
+#     "new_access_token": new_access_token,
+#     "token_type": "bearer"
+# },
+#                     status_code=status.HTTP_200_OK)
 
 
 @app.get("/users/me")
-async def read_users_me(current_user: dict = Depends(verify_cookie)):
+async def read_users_me(current_user: dict = Depends(verify_token)):
     return current_user
 
 
@@ -194,9 +242,9 @@ async def read_users_me(current_user: dict = Depends(verify_cookie)):
     summary="Get the configuration file",
     description="Get the configuration file.",
     tags=["config"],
-    dependencies=[Depends(verify_cookie)],
+    dependencies=[Depends(verify_token)],
 )
-async def get_configuration(username: str = Depends(verify_cookie)):
+async def get_configuration(username: str = Depends(verify_token)):
     return conf.get_conf(username)
 
 
@@ -205,9 +253,9 @@ async def get_configuration(username: str = Depends(verify_cookie)):
     tags=["config"],
     summary="Refresh the configuration file",
     description="Force to read the configuration file from disk.",
-    dependencies=[Depends(verify_cookie)],
+    dependencies=[Depends(verify_token)],
 )
-async def refresh_conf(username: str = Depends(verify_cookie)):
+async def refresh_conf(username: str = Depends(verify_token)):
     conf.force_read(username)
     return JSONResponse(status_code=200, content={"message": "success"})
 
@@ -217,10 +265,10 @@ async def refresh_conf(username: str = Depends(verify_cookie)):
     tags=["config"],
     summary="Get a specific key from the configuration file",
     description="Get a specific key from the configuration file.",
-    dependencies=[Depends(verify_cookie)],
+    dependencies=[Depends(verify_token)],
 )
 async def get_configuration_key(key: str,
-                                username: str = Depends(verify_cookie)):
+                                username: str = Depends(verify_token)):
     conf_content = conf.get_conf(username)
     if key not in conf_content:
         return JSONResponse(status_code=404,
@@ -233,11 +281,11 @@ async def get_configuration_key(key: str,
     tags=["config"],
     summary="Update a specific key in the configuration file",
     description="Update a specific key in the configuration file.",
-    dependencies=[Depends(verify_cookie)],
+    dependencies=[Depends(verify_token)],
 )
 async def update_configuration(key: str,
                                request: Request,
-                               username: str = Depends(verify_cookie)):
+                               username: str = Depends(verify_token)):
     body = await request.body()
     try:
         body_p = json.loads('{"data" : ' + body.decode(encoding="utf-8") + "}")
@@ -253,10 +301,10 @@ async def update_configuration(key: str,
     tags=["config"],
     summary="Delete a specific key in the configuration file",
     description="Delete a specific key in the configuration file.",
-    dependencies=[Depends(verify_cookie)],
+    dependencies=[Depends(verify_token)],
 )
 async def delete_configuration(key: str,
-                               username: str = Depends(verify_cookie)):
+                               username: str = Depends(verify_token)):
     if key not in conf.get_conf(username):
         return JSONResponse(status_code=404,
                             content={"message": "Key not found"})
@@ -269,9 +317,9 @@ async def delete_configuration(key: str,
     tags=["config"],
     summary="Verify the configuration file",
     description="Verify the configuration file.",
-    dependencies=[Depends(verify_cookie)],
+    dependencies=[Depends(verify_token)],
 )
-async def verify_config(username: str = Depends(verify_cookie)):
+async def verify_config(username: str = Depends(verify_token)):
     conf_content = conf.get_conf(username)
     """
     Verify the configuration
@@ -282,9 +330,9 @@ async def verify_config(username: str = Depends(verify_cookie)):
     if "url" not in conf_content:
         return JSONResponse(status_code=404,
                             content={"message": "url not found"})
-    if "background_image" not in conf_content and "video" not in conf_content:
-        return JSONResponse(status_code=400,
-                            content={"message": "background not set"})
+    # if "background_image" not in conf_content and "video" not in conf_content:
+    #     return JSONResponse(status_code=400,
+    #                         content={"message": "background not set"})
     # Test bid
 
     headers = {"Authorization": f'Bearer {conf_content["bid"]}'}
@@ -307,9 +355,9 @@ async def verify_config(username: str = Depends(verify_cookie)):
     tags=["course"],
     summary="Get all the courses",
     description="Get all the courses.",
-    dependencies=[Depends(verify_cookie)],
+    dependencies=[Depends(verify_token)],
 )
-async def get_all_courses(username: str = Depends(verify_cookie)):
+async def get_all_courses(username: str = Depends(verify_token)):
     conf_content = conf.get_conf(username)
 
     if "courses" not in conf_content:
@@ -322,9 +370,9 @@ async def get_all_courses(username: str = Depends(verify_cookie)):
     tags=["course"],
     summary="Get all the courses from canvas",
     description="Get all the courses from canvas.",
-    dependencies=[Depends(verify_cookie)],
+    dependencies=[Depends(verify_token)],
 )
-async def get_all_canvas_courses(username: str = Depends(verify_cookie)):
+async def get_all_canvas_courses(username: str = Depends(verify_token)):
     conf_content = conf.get_conf(username)
 
     if "bid" not in conf_content:
@@ -346,10 +394,9 @@ async def get_all_canvas_courses(username: str = Depends(verify_cookie)):
     summary="Delete a course",
     description=
     "Delete a course. It will delete all the course items with the given course id.",
-    dependencies=[Depends(verify_cookie)],
+    dependencies=[Depends(verify_token)],
 )
-async def delete_course(course_id: int,
-                        username: str = Depends(verify_cookie)):
+async def delete_course(course_id: int, username: str = Depends(verify_token)):
     conf_content = conf.get_conf(username)
 
     if "courses" not in conf_content:
@@ -375,11 +422,11 @@ async def delete_course(course_id: int,
     summary="Delete a course item",
     description=
     "Delete a course item. It will delete the course item with the given course id and type.",
-    dependencies=[Depends(verify_cookie)],
+    dependencies=[Depends(verify_token)],
 )
 async def delete_course_item(course_id: int,
                              type: str,
-                             username: str = Depends(verify_cookie)):
+                             username: str = Depends(verify_token)):
     conf_content = conf.get_conf(username)
 
     if "courses" not in conf_content:
@@ -403,10 +450,9 @@ async def delete_course_item(course_id: int,
     tags=["course"],
     summary="Add a course",
     description="Add a course.",
-    dependencies=[Depends(verify_cookie)],
+    dependencies=[Depends(verify_token)],
 )
-async def create_course(course: Course,
-                        username: str = Depends(verify_cookie)):
+async def create_course(course: Course, username: str = Depends(verify_token)):
     conf_content = conf.get_conf(username)
 
     if course.type not in ["ann", "dis", "ass"]:
@@ -447,11 +493,11 @@ async def create_course(course: Course,
     tags=["course"],
     summary="Modify a course",
     description="Modify a course.",
-    dependencies=[Depends(verify_cookie)],
+    dependencies=[Depends(verify_token)],
 )
 async def modify_course(index: int,
                         course: Course,
-                        username: str = Depends(verify_cookie)):
+                        username: str = Depends(verify_token)):
     conf_content = conf.get_conf(username)
 
     if "courses" not in conf_content:
@@ -495,11 +541,11 @@ async def modify_course(index: int,
     tags=["canvas"],
     summary="Get the dashboard",
     description="Get the dashboard.",
-    dependencies=[Depends(verify_cookie)],
+    dependencies=[Depends(verify_token)],
 )
 async def get_dashboard(cache: bool = False,
                         mode: str = "html",
-                        username: str = Depends(verify_cookie)):
+                        username: str = Depends(verify_token)):
     if cache:
         # Use cache
         cache_file = cache_file_name(username)
@@ -528,11 +574,11 @@ async def get_dashboard(cache: bool = False,
     tags=["canvas"],
     summary="Check some task",
     description="Check some task.",
-    dependencies=[Depends(verify_cookie)],
+    dependencies=[Depends(verify_token)],
 )
 async def set_check(name: str,
                     check: Check,
-                    username: str = Depends(verify_cookie)):
+                    username: str = Depends(verify_token)):
     conf_content = conf.get_conf(username)
     """
     Check
@@ -561,9 +607,9 @@ async def set_check(name: str,
     tags=["canvas"],
     summary="Get the position",
     description="Get the position.",
-    dependencies=[Depends(verify_cookie)],
+    dependencies=[Depends(verify_token)],
 )
-async def get_position(username: str = Depends(verify_cookie)):
+async def get_position(username: str = Depends(verify_token)):
     conf_content = conf.get_conf(username)
     """
     Get position
@@ -579,10 +625,10 @@ async def get_position(username: str = Depends(verify_cookie)):
     tags=["canvas"],
     summary="Set the position",
     description="Set the position.",
-    dependencies=[Depends(verify_cookie)],
+    dependencies=[Depends(verify_token)],
 )
 async def update_position(position: Position,
-                          username: str = Depends(verify_cookie)):
+                          username: str = Depends(verify_token)):
     """
     Set position
     """
@@ -604,7 +650,7 @@ async def update_position(position: Position,
     tags=["file"],
     summary="Upload file",
     description="Upload file to public/res.",
-    dependencies=[Depends(verify_cookie)],
+    dependencies=[Depends(verify_token)],
 )
 async def upload_file(file: UploadFile):
     if not path.exists("./public/res"):
@@ -623,7 +669,7 @@ async def upload_file(file: UploadFile):
     tags=["file"],
     summary="Delete file",
     description="Delete file in public/res.",
-    dependencies=[Depends(verify_cookie)],
+    dependencies=[Depends(verify_token)],
 )
 async def delete_file(name: str):
     tmp = check_file(name)
@@ -643,7 +689,7 @@ async def delete_file(name: str):
     tags=["file"],
     summary="Get file list",
     description="Get files in public/res.",
-    dependencies=[Depends(verify_cookie)],
+    dependencies=[Depends(verify_token)],
 )
 async def get_file_list():
     if path.exists("./public/res"):
@@ -658,7 +704,7 @@ async def get_file_list():
     tags=["file"],
     summary="Get file",
     description="Get file in public/res.",
-    dependencies=[Depends(verify_cookie)],
+    dependencies=[Depends(verify_token)],
 )
 async def get_file(name: str):
     if path.exists(f"./public/res/{name}"):
@@ -673,7 +719,7 @@ async def get_file(name: str):
     tags=["misc"],
     summary="Open URL in web browser",
     description="Open URL in web browser.",
-    dependencies=[Depends(verify_cookie)],
+    dependencies=[Depends(verify_token)],
 )
 async def open_url(data: URL):
     import webbrowser
