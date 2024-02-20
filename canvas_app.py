@@ -498,7 +498,6 @@ async def get_dashboard(cache: bool = False,
         # Use cache
         cache_file = cache_file_name(username)
         if path.exists(cache_file):
-            # TODO: change into user-identical filename
             with open(cache_file, "r", encoding="utf-8", errors="ignore") as f:
                 obj = json.load(f)
                 if mode == "html":
@@ -678,7 +677,8 @@ async def open_url(data: URL):
         else:
             res = webbrowser.open(data.url)
         if not res:
-            raise Exception("Cannot find web browser")
+            raise HTTPException(status_code=400,
+                                detail="Cannot find web browser")
         return JSONResponse(status_code=200, content={"message": "Opened"})
     except Exception as e:
         logging.warning(e)
