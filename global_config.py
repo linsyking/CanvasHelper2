@@ -3,8 +3,6 @@ from passlib.context import CryptContext
 user_conf_path = "./canvas/user_configs/"
 user_cache_path = "./canvas/user_caches/"
 
-front_end_domain = "https://canvashelper.netlify.app"  # Used to set CORS and redirect to root path
-# THIS ALSO PROVIDES CSRF ATTACK PROTECTION! MUSN'T BE CHANGED TO "*" OR ANYTHING ELSE UNLESS YOU KNOW WHAT YOU'RE DOING
 uvicorn_domain = "localhost"  # Used to start uvicorn locally by running: `python canvas_app.py`
 uvicorn_port = 9283
 

@@ -60,7 +60,7 @@ app = FastAPI(version="1.0.1",
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[front_end_domain],
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -110,7 +110,7 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends(),
                 auth_token: str = Security(oauth2_scheme)):
     if verify_login(auth_token):
         # Return HTML to avoid POST to GET conversion
-        html_content = f'<script>location.href = "{front_end_domain}"</script>'
+        html_content = '<script>location.href = "."</script>'
         return HTMLResponse(content=html_content,
                             status_code=status.HTTP_200_OK)
 
