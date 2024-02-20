@@ -12,7 +12,6 @@ import requests
 from jose import jwt, JWTError  # pip install python-jose
 from typing import List
 import urllib.parse
-import logging
 import json
 
 from global_config import ACCESS_TOKEN_EXPIRE_MINUTES, REFRESH_TOKEN_EXPIRE_DAYS, ALGORITHM, uvicorn_domain, uvicorn_port
@@ -43,8 +42,6 @@ app.add_middleware(
 )
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/login")
-
-logging.basicConfig(level=logging.INFO, format="[%(levelname)s] %(message)s")
 
 conf = ConfigMGR()
 
@@ -661,7 +658,7 @@ async def open_url(data: URL):
                                 detail="Cannot find web browser")
         return JSONResponse(status_code=200, content={"message": "Opened"})
     except Exception as e:
-        logging.warning(e)
+        print(e)
         return JSONResponse(status_code=400,
                             content={"message": "Failed to open"})
 
