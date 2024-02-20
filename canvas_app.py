@@ -152,9 +152,6 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends(),
 )
 async def refresh_token(form_data: OAuth2PasswordRequestForm = Depends()):
     refresh_token = form_data.password  # Actually refresh_token, but treated as secure as password
-    if not refresh_token:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
-                            detail="Refresh token missing")
     try:
         payload = jwt.decode(refresh_token, SECRET_KEY, algorithms=[ALGORITHM])
         if payload.get("type") != "refresh_token":
