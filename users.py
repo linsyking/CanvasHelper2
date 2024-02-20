@@ -3,7 +3,6 @@ import base64
 import json
 from os import path
 from global_config import *
-# from auth import get_password_hash
 
 
 def conf_file_name(username):
