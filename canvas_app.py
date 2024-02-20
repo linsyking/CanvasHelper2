@@ -652,7 +652,7 @@ async def get_file_list():
     tags=["file"],
     summary="Get file",
     description="Get file in public/res.",
-    dependencies=[Depends(verify_token)],
+    # dependencies=[Depends(verify_token)],
 )
 async def get_file(name: str):
     if path.exists(f"./public/res/{name}"):
