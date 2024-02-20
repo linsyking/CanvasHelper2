@@ -134,18 +134,6 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends(),
     },
                                          expires_delta=refresh_token_expires)
 
-    # # Set cookies for both access and refresh tokens
-    # response.set_cookie(key="auth_token",
-    #                     value=access_token,
-    #                     secure=True,
-    #                     samesite='None',
-    #                     httponly=True)  # XSS protection
-    # response.set_cookie(key="refresh_token",
-    #                     value=refresh_token,
-    #                     secure=True,
-    #                     samesite='None',
-    #                     httponly=True)  # XSS protection
-
     return JSONResponse(content={
         "message": "Logged in",
         "access_token": access_token,
@@ -187,51 +175,12 @@ async def refresh_token(form_data: OAuth2PasswordRequestForm = Depends()):
         "type": "access_token"
     },
                                            expires_delta=access_token_expires)
-    # response.set_cookie(key="auth_token",
-    #                     value=new_access_token,
-    #                     secure=True,
-    #                     samesite='None',
-    #                     httponly=True)  # XSS protection
+
     return JSONResponse(content={
         "message": "Refreshed token",
         "new_access_token": new_access_token,
     },
                         status_code=status.HTTP_200_OK)
-
-
-# async def refresh_token(refresh_token: str):
-# if not refresh_token:
-#     raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
-#                         detail="Refresh token missing")
-# try:
-#     payload = jwt.decode(refresh_token, SECRET_KEY, algorithms=[ALGORITHM])
-#     if payload.get("type") != "refresh_token":
-#         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
-#                             detail="Invalid refresh token")
-#     username: str = payload.get("sub")
-#     if not username:
-#         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
-#                             detail="Not authenticated")
-# except JWTError:
-#     raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
-#                         detail="Invalid refresh token")
-
-# # Generate new access token
-# access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-# new_access_token = create_access_token(data={"sub": username},
-#                                        expires_delta=access_token_expires)
-# # response.set_cookie(key="auth_token",
-# #                     value=new_access_token,
-# #                     secure=True,
-# #                     samesite='None',
-# #                     httponly=True)  # XSS protection
-# return JSONResponse(content={
-#     "message": "Refreshed token",
-#     "message": "Logged in",
-#     "new_access_token": new_access_token,
-#     "token_type": "bearer"
-# },
-#                     status_code=status.HTTP_200_OK)
 
 
 @app.get("/users/me")
@@ -332,9 +281,9 @@ async def verify_config(username: str = Depends(verify_token)):
     if "url" not in conf_content:
         return JSONResponse(status_code=404,
                             content={"message": "url not found"})
-    # if "background_image" not in conf_content and "video" not in conf_content:
-    #     return JSONResponse(status_code=400,
-    #                         content={"message": "background not set"})
+    if "background_image" not in conf_content and "video" not in conf_content:
+        return JSONResponse(status_code=400,
+                            content={"message": "background not set"})
     # Test bid
 
     headers = {"Authorization": f'Bearer {conf_content["bid"]}'}
