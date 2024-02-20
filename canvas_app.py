@@ -30,7 +30,8 @@ Local function
 # INFO: Safety check for file
 def check_file(filename):
     base_path = "/public/res/"
-    full_path = path.normpath(path.join(base_path, filename)).replace("\\", "/")
+    full_path = path.normpath(path.join(base_path,
+                                        filename)).replace("\\", "/")
     if ("." not in filename
             or filename.rsplit(".", 1)[1].lower() not in ALLOWED_EXTENSION):
         return "Illegal"
