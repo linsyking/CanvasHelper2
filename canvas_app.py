@@ -9,7 +9,7 @@ from os import path, listdir, remove, mkdir
 import uvicorn
 from uvicorn.config import LOGGING_CONFIG
 import requests
-from jose import jwt, JWTError
+from jose import jwt, JWTError  # pip install python-jose
 from typing import List
 import urllib.parse
 import logging
