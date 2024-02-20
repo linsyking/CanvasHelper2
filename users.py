@@ -2,7 +2,7 @@ import base64
 # import hashlib
 import json
 from os import path
-from global_config import *
+from global_config import user_conf_path, user_cache_path, pwd_context
 
 
 def conf_file_name(username):

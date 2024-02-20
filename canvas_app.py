@@ -1,52 +1,28 @@
 #!/usr/bin/env python3
 
 from fastapi import FastAPI, Request, UploadFile, Security, HTTPException, Depends, status
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from fastapi.responses import FileResponse, HTMLResponse
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from fastapi.responses import JSONResponse
+from os import path, listdir, remove, mkdir
 import uvicorn
 from uvicorn.config import LOGGING_CONFIG
 import requests
 from jose import jwt, JWTError
 from typing import List
 import urllib.parse
-from fastapi.responses import JSONResponse
-from os import path, listdir, remove, mkdir
 import logging
 import json
 
+from global_config import ACCESS_TOKEN_EXPIRE_MINUTES, REFRESH_TOKEN_EXPIRE_DAYS, ALGORITHM, uvicorn_domain, uvicorn_port
+from auth import SECRET_KEY, timedelta, verify_login, authenticate_user, create_access_token, create_refresh_token
+from local_func import check_file, htmlspecialchars, init_conf_path
 from users import cache_file_name, create_user, user_exists
 from models import Position, Check, Course, URL
 from config_mgr import ConfigMGR
 from canvas_mgr import CanvasMGR
 from updater import update
-from global_config import *
-from auth import *
-"""
-Local function
-"""
-
-
-# INFO: Safety check for file
-def check_file(filename):
-    base_path = "/public/res/"
-    full_path = path.normpath(path.join(base_path,
-                                        filename)).replace("\\", "/")
-    if ("." not in filename
-            or filename.rsplit(".", 1)[1].lower() not in ALLOWED_EXTENSION):
-        return "Illegal"
-    if not full_path.startswith(base_path):
-        return "Illegal"
-    else:
-        return filename
-
-
-# XSS protection
-def htmlspecialchars(text):
-    return (text.replace("&", "&amp;").replace('"', "&quot;").replace(
-        "<", "&lt;").replace(">", "&gt;"))
-
-
 """
 Canvas App
 
@@ -71,6 +47,9 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/login")
 logging.basicConfig(level=logging.INFO, format="[%(levelname)s] %(message)s")
 
 conf = ConfigMGR()
+
+# Make sure all folders exist
+init_conf_path()
 
 # Self Update
 update()

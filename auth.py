@@ -1,8 +1,9 @@
-import os
-import random
 from datetime import datetime, timedelta
 from jose import jwt, JWTError
-from global_config import *
+import random
+import os
+
+from global_config import ALGORITHM, pwd_context
 from users import user_exists, get_hashed_password
 
 

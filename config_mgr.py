@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 
-import json
 from os import path
+import json
+
 from users import conf_file_name
 
 class ConfigMGR:
