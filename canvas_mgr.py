@@ -5,7 +5,9 @@ from math import floor
 import requests
 import json
 import os
+
 from users import conf_file_name, cache_file_name
+from global_config import user_conf_path, user_cache_path
 """
 Canvas Manager
 
@@ -28,6 +30,10 @@ class CanvasMGR:
         self.cache_file_name = cache_file_name(username)
         if not os.path.exists("canvas"):
             os.mkdir("canvas")
+        if not os.path.exists(user_conf_path):
+            os.mkdir(user_conf_path)
+        if not os.path.exists(user_cache_path):
+            os.mkdir(user_cache_path)
         if not os.path.exists(self.config_file_path):
             raise Exception(
                 f"No configuration file found for user: {username}")
