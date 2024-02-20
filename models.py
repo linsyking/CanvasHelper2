@@ -7,7 +7,6 @@
 
 from pydantic import BaseModel, Field
 from typing import Union
-
 """
 Models
 """
@@ -36,3 +35,7 @@ class Course(BaseModel):
 class URL(BaseModel):
     url: str
     browser: Union[str, None] = None
+
+
+class TokenRequest(BaseModel):
+    refresh_token: str

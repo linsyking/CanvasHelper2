@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from fastapi import FastAPI, Request, UploadFile, Security, HTTPException, Depends, status
+from fastapi import FastAPI, Request, UploadFile, Security, HTTPException, Depends, status, Form
 from fastapi.responses import FileResponse, HTMLResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
@@ -12,7 +12,7 @@ from jose import jwt, JWTError
 from config_mgr import ConfigMGR
 from canvas_mgr import CanvasMGR
 import urllib.parse
-from models import Position, Check, Course, URL
+from models import Position, Check, Course, URL, TokenRequest
 from fastapi.responses import JSONResponse
 from os import path, listdir, remove, mkdir
 from updater import update
@@ -160,16 +160,15 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends(),
     summary="Refresh the access token",
     description="Refresh the access token",
     tags=["auth"],
-    # dependencies=[Depends(verify_token)],
+    dependencies=[Depends(verify_token)],
 )
-async def refresh_token(form_data: OAuth2PasswordRequestForm = Depends()):
-    if not form_data.refresh_token:
+async def refresh_token(request: TokenRequest):
+    refresh_token = request.refresh_token
+    if not refresh_token:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
                             detail="Refresh token missing")
     try:
-        payload = jwt.decode(form_data.refresh_token,
-                             SECRET_KEY,
-                             algorithms=[ALGORITHM])
+        payload = jwt.decode(refresh_token, SECRET_KEY, algorithms=[ALGORITHM])
         if payload.get("type") != "refresh_token":
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
                                 detail="Invalid refresh token")
@@ -183,7 +182,10 @@ async def refresh_token(form_data: OAuth2PasswordRequestForm = Depends()):
 
     # Generate new access token
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-    new_access_token = create_access_token(data={"sub": username},
+    new_access_token = create_access_token(data={
+        "sub": username,
+        "type": "access_token"
+    },
                                            expires_delta=access_token_expires)
     # response.set_cookie(key="auth_token",
     #                     value=new_access_token,
