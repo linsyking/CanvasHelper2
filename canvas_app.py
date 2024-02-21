@@ -10,13 +10,12 @@ import uvicorn
 from uvicorn.config import LOGGING_CONFIG
 from jose import jwt, JWTError  # pip install python-jose
 from typing import List
-import urllib.parse
 import requests
 import json
 
 from global_config import ACCESS_TOKEN_EXPIRE_MINUTES, REFRESH_TOKEN_EXPIRE_DAYS, ALGORITHM, uvicorn_domain, uvicorn_port
 from auth import SECRET_KEY, timedelta, verify_login, authenticate_user, create_access_token, create_refresh_token
-from local_func import check_file, htmlspecialchars, init_conf_path
+from local_func import check_file, htmlspecialchars, init_conf_path, url_format
 from models import Position, Check, Course, URL, RequestForm
 from users import cache_file_name, create_user, user_exists
 from config_mgr import ConfigMGR
@@ -64,11 +63,7 @@ def verify_token(auth_token: str = Security(oauth2_scheme)):
 
 def verify_bid(url, bid):
     headers = {"Authorization": f'Bearer {bid}'}
-    if url.find("http://") == -1 and url.find("https://") == -1:
-        # Invalid protocal
-        url = "https://" + url
-    if not url.endswith("/"):
-        url = url + "/api/v1/accounts"
+    url = url_format(url) + "api/v1/accounts"
     res = requests.get(url, headers=headers).status_code
     return res == 200
 
@@ -312,11 +307,8 @@ async def get_all_canvas_courses(username: str = Depends(verify_token)):
                             content={"message": "bid not found"})
 
     headers = {"Authorization": f'Bearer {conf_content["bid"]}'}
-    res = requests.get(
-        urllib.parse.urljoin(str(conf_content["url"]),
-                             "api/v1/dashboard/dashboard_cards"),
-        headers=headers,
-    ).text
+    url = url_format(conf_content["url"]) + "api/v1/dashboard/dashboard_cards"
+    res = requests.get(url, headers=headers).text
     return json.loads(res)
 
 

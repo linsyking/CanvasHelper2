@@ -39,3 +39,13 @@ def init_conf_path():
     if not os.path.exists(user_cache_path):
         os.mkdir(user_cache_path)
         print("No user cache folder found. Created one.")
+
+
+# Format url into https://example.com/
+def url_format(url):
+    if url.find("http://") == -1 and url.find("https://") == -1:
+        # Invalid protocal
+        url = "https://" + url
+    if not url.endswith("/"):
+        url = url + "/"
+    return url
