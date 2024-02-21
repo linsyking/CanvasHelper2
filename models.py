@@ -35,3 +35,10 @@ class Course(BaseModel):
 class URL(BaseModel):
     url: str
     browser: Union[str, None] = None
+
+
+class OAuthRequestForm(BaseModel):
+    username: str
+    password: str
+    url: str
+    bid: str

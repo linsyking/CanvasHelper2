@@ -8,17 +8,17 @@ from fastapi.responses import JSONResponse
 from os import path, listdir, remove, mkdir
 import uvicorn
 from uvicorn.config import LOGGING_CONFIG
-import requests
 from jose import jwt, JWTError  # pip install python-jose
 from typing import List
 import urllib.parse
+import requests
 import json
 
 from global_config import ACCESS_TOKEN_EXPIRE_MINUTES, REFRESH_TOKEN_EXPIRE_DAYS, ALGORITHM, uvicorn_domain, uvicorn_port
 from auth import SECRET_KEY, timedelta, verify_login, authenticate_user, create_access_token, create_refresh_token
 from local_func import check_file, htmlspecialchars, init_conf_path
+from models import Position, Check, Course, URL, OAuthRequestForm
 from users import cache_file_name, create_user, user_exists
-from models import Position, Check, Course, URL
 from config_mgr import ConfigMGR
 from canvas_mgr import CanvasMGR
 from updater import update
@@ -80,9 +80,11 @@ def verify_bid(url, bid):
     description="Sign up",
     tags=["auth"],
 )
-async def signup(form_data: OAuth2PasswordRequestForm = Depends()):
+async def signup(form_data: OAuthRequestForm = Depends()):
     if user_exists(form_data.username):
         raise HTTPException(status_code=400, detail="Username already taken")
+    if not verify_bid(form_data.url, form_data.bid):
+        raise HTTPException(status_code=400, detail="Invalid bid")
     create_user(form_data.username, form_data.password)
     return {"message": "Signed up"}
 
@@ -650,21 +652,24 @@ async def get_file(name: str):
     dependencies=[Depends(verify_token)],
 )
 async def open_url(data: URL):
-    import webbrowser
+    # import webbrowser
 
-    try:
-        if data.browser:
-            res = webbrowser.get(data.browser).open(data.url)
-        else:
-            res = webbrowser.open(data.url)
-        if not res:
-            raise HTTPException(status_code=400,
-                                detail="Cannot find web browser")
-        return JSONResponse(status_code=200, content={"message": "Opened"})
-    except Exception as e:
-        print(e)
-        return JSONResponse(status_code=400,
-                            content={"message": "Failed to open"})
+    # try:
+    #     if data.browser:
+    #         res = webbrowser.get(data.browser).open(data.url)
+    #     else:
+    #         res = webbrowser.open(data.url)
+    #     if not res:
+    #         raise HTTPException(status_code=400,
+    #                             detail="Cannot find web browser")
+    #     return JSONResponse(status_code=200, content={"message": "Opened"})
+    # except Exception as e:
+    #     print(e)
+    #     return JSONResponse(status_code=400,
+    #                         content={"message": "Failed to open"})
+    #return html
+    html_content = '<script>window.open("' + data.url + '","_blank")</script>'
+    return HTMLResponse(content=html_content, status_code=status.HTTP_200_OK)
 
 
 if __name__ == "__main__":
