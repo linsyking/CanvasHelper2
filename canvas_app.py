@@ -17,7 +17,7 @@ import json
 from global_config import ACCESS_TOKEN_EXPIRE_MINUTES, REFRESH_TOKEN_EXPIRE_DAYS, ALGORITHM, uvicorn_domain, uvicorn_port
 from auth import SECRET_KEY, timedelta, verify_login, authenticate_user, create_access_token, create_refresh_token
 from local_func import check_file, htmlspecialchars, init_conf_path
-from models import Position, Check, Course, URL, OAuthRequestForm
+from models import Position, Check, Course, URL, RequestForm
 from users import cache_file_name, create_user, user_exists
 from config_mgr import ConfigMGR
 from canvas_mgr import CanvasMGR
@@ -64,12 +64,12 @@ def verify_token(auth_token: str = Security(oauth2_scheme)):
 
 def verify_bid(url, bid):
     headers = {"Authorization": f'Bearer {bid}'}
-    url = str(url)
-    if url.find("http://") != 0 and url.find("https://") != 0:
+    if url.find("http://") == -1 and url.find("https://") == -1:
         # Invalid protocal
         url = "https://" + url
-    res = requests.get(urllib.parse.urljoin(url, "api/v1/accounts"),
-                       headers=headers).status_code
+    if not url.endswith("/"):
+        url = url + "/api/v1/accounts"
+    res = requests.get(url, headers=headers).status_code
     return res == 200
 
 
@@ -80,7 +80,8 @@ def verify_bid(url, bid):
     description="Sign up",
     tags=["auth"],
 )
-async def signup(form_data: OAuthRequestForm = Depends()):
+async def signup(form_data: RequestForm):
+    print("Signup: " + form_data.username)
     if user_exists(form_data.username):
         raise HTTPException(status_code=400, detail="Username already taken")
     if not verify_bid(form_data.url, form_data.bid):
@@ -272,7 +273,7 @@ async def verify_config(username: str = Depends(verify_token)):
         return JSONResponse(status_code=400,
                             content={"message": "background not set"})
     # Test bid
-    url = str(conf_content["url"])
+    url = conf_content["url"]
     conf.set_key_value(username, "url", url)
     if verify_bid(url, conf_content["bid"]):
         return JSONResponse(status_code=200, content={"message": "success"})

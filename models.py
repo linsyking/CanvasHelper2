@@ -37,7 +37,7 @@ class URL(BaseModel):
     browser: Union[str, None] = None
 
 
-class OAuthRequestForm(BaseModel):
+class RequestForm(BaseModel):
     username: str
     password: str
     url: str
