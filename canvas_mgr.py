@@ -3,9 +3,13 @@
 from datetime import datetime, timedelta
 from math import floor
 import requests
+import sqlite3
 import json
-import os
 
+from global_config import DATABASE
+from config_mgr import ConfigMGR
+
+# from users import conf_file_name, cache_file_name
 """
 Canvas Manager
 
@@ -20,23 +24,19 @@ class CanvasMGR:
     bid = ""
     ucommand = {}
     url = ""
-    output_mode = "html"
 
-    def __init__(self, output_mode: str = "html") -> None:
-        if not os.path.exists("canvas"):
-            os.mkdir("canvas")
-        # Check whether config file exists
-        if not os.path.exists("./user_conf.json"):
-            raise Exception("No configuration file found")
-        self.output_mode = output_mode
+    def __init__(self, username: str) -> None:
+        self.username = username
+        self.config_mgr = ConfigMGR()
+        self.config = self.config_mgr.get_conf(username)
+        if self.config is None:
+            raise Exception(f"No configuration found for user: {username}")
         self.reset()
 
     def reset(self):
         self.g_out = ""
         self.g_tformat = "relative"
-
-        with open("./user_conf.json", "r", encoding="utf-8", errors="ignore") as f:
-            self.ucommand = json.load(f)
+        self.ucommand = self.config
 
         self.url = self.ucommand["url"]
         self.bid = self.ucommand["bid"]
@@ -51,14 +51,19 @@ class CanvasMGR:
         if "timeformat" in self.ucommand:
             self.g_tformat = self.ucommand["timeformat"]
 
-    def dump_out(self):
-        """
-        Dump HTML output
-        """
-        obj = {"html": self.g_out[:-1], "json": "{}"}
-        with open("./canvas/cache.json", "w", encoding="utf-8", errors="ignore") as f:
-            json.dump(obj, f, ensure_ascii=False, indent=4)
-        return self.g_out[:-1]
+    def write_cache(self):
+        html = self.g_out[:-1]
+        with sqlite3.connect(DATABASE) as conn:
+            cursor = conn.cursor()
+            cursor.execute("SELECT id FROM users WHERE username = ?",
+                           (self.username, ))
+            user_id = cursor.fetchone()[0]
+            cursor.execute(
+                '''
+                INSERT OR REPLACE INTO user_cache (user_id, html) VALUES (?, ?)
+                ''', (user_id, html))
+            conn.commit()
+            return html
 
     def print_own(self, mystr):
         """
@@ -84,39 +89,45 @@ class CanvasMGR:
                         self.url,
                         self.usercheck,
                         g_tformat=self.g_tformat,
-                    )
-                )
+                    ))
         except Exception as e:
             raise Exception("invalid course", e)
 
         now_root = self.now.replace(hour=0, minute=0, second=0, microsecond=0)
 
-        sem_begin = datetime.strptime(self.ucommand["semester_begin"], "%Y-%m-%d")
+        sem_begin = datetime.strptime(self.ucommand["semester_begin"],
+                                      "%Y-%m-%d")
 
         bdays = (now_root - sem_begin).days
         bweeks = floor(bdays / 7) + 1
 
         if "title" in self.ucommand:
-            self.print_own(f"<h1>{self.ucommand['title']} - Week {bweeks}</h1>")
+            self.print_own(
+                f"<h1>{self.ucommand['title']} - Week {bweeks}</h1>")
         else:
             self.print_own(f"<h1>Canvas Dashboard - Week {bweeks}</h1>")
 
         for i in allc:
             try:
                 i.run()
-            except:
+            except Exception as e:
+                print(e)
                 self.print_own(f"<h2>{i.cname} - Error</h2>\n{i.raw}")
 
         for i in allc:
             self.print_own(i.print_out())
 
-        return self.dump_out()
+        return self.write_cache()
 
 
 class apilink:
-    def __init__(
-        self, course: dict, bid: str, url: str, user_check, g_tformat="relative"
-    ) -> None:
+
+    def __init__(self,
+                 course: dict,
+                 bid: str,
+                 url: str,
+                 user_check,
+                 g_tformat="relative") -> None:
         self.headers = {"Authorization": f"Bearer {bid}"}
 
         self.course = course["course_id"]
@@ -131,19 +142,19 @@ class apilink:
         self.g_tformat = g_tformat
         self.usercheck = user_check
 
-    def dump_span(self, style, id, text, url: str = ""):
+    def dump_span(self, style, item_id, text, url: str = ""):
         if style == 1:
             # Positive
-            return f'<div class="single"><span class="checkbox positive" id="{id}"></span><span class="label" url="{url}">{text}</span></div>\n'
+            return f'<div class="single"><span class="checkbox positive" id="{item_id}"></span><span class="label" url="{url}">{text}</span></div>\n'
         elif style == 2:
             # wrong
-            return f'<div class="single"><span class="checkbox negative" id="{id}"></span><span class="label" url="{url}">{text}</span></div>\n'
+            return f'<div class="single"><span class="checkbox negative" id="{item_id}"></span><span class="label" url="{url}">{text}</span></div>\n'
         elif style == 3:
             # important
-            return f'<div class="single"><span class="checkbox important" id="{id}"></span><span class="label" url="{url}">{text}</span></div>\n'
+            return f'<div class="single"><span class="checkbox important" id="{item_id}"></span><span class="label" url="{url}">{text}</span></div>\n'
         else:
             # Not checked
-            return f'<div class="single"><span class="checkbox" id="{id}"></span><span class="label" url="{url}">{text}</span></div>\n'
+            return f'<div class="single"><span class="checkbox" id="{item_id}"></span><span class="label" url="{url}">{text}</span></div>\n'
 
     def num2ch(self, f: int):
         s = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
@@ -160,18 +171,18 @@ class apilink:
             # Fallback
             return rtime.strftime(format)
 
-    def get_check_status(self, name: str):
+    def get_check_status(self, item_id):
         # Return type
         for i in self.usercheck:
-            if i["name"] == name:
+            if i["item_id"] == item_id:
                 return i["type"]
         return 0
 
     def relative_date(self, rtime: datetime):
         # Generate relative date
-        delta = rtime.replace(
-            hour=0, minute=0, second=0, microsecond=0
-        ) - self.now.replace(hour=0, minute=0, second=0, microsecond=0)
+        delta = rtime.replace(hour=0, minute=0, second=0,
+                              microsecond=0) - self.now.replace(
+                                  hour=0, minute=0, second=0, microsecond=0)
         wp = int((delta.days + self.now.weekday()) / 7)
         if wp == 0:
             # Current week
@@ -198,8 +209,7 @@ class apilink:
 
     def send(self, url):
         return requests.get(url, headers=self.headers).content.decode(
-            encoding="utf-8", errors="ignore"
-        )
+            encoding="utf-8", errors="ignore")
 
     def _cmp_ass(self, el):
         if el["due_at"]:
@@ -209,16 +219,15 @@ class apilink:
 
     def run(self):
         t = self.course_type
-        if t == "ass":
+        if t == 0:
             self.collect_assignment()
-        elif t == "ann":
+        elif t == 1:
             self.collect_announcement()
-        elif t == "dis":
+        elif t == 2:
             self.collect_discussion()
         else:
             raise Exception(
-                f"invalid show type {self.course_type} (only support ass, annc, disc)"
-            )
+                f"invalid show type {self.course_type} (only support 0, 1, 2)")
         self.add_custom_info()
 
     def add_custom_info(self):
@@ -238,8 +247,8 @@ class apilink:
                 for k in a:
                     if k["due_at"]:
                         dttime = datetime.strptime(
-                            k["due_at"], "%Y-%m-%dT%H:%M:%SZ"
-                        ) + timedelta(hours=8)
+                            k["due_at"],
+                            "%Y-%m-%dT%H:%M:%SZ") + timedelta(hours=8)
                         if dttime < self.now:
                             continue
                         self.ass_data.append(k)
@@ -263,31 +272,30 @@ class apilink:
                 break
             maxnum -= 1
             submit_msg = ""
-            if ("has_submitted_submissions" in ass) and ass[
-                "has_submitted_submissions"
-            ]:
+            if ("has_submitted_submissions"
+                    in ass) and ass["has_submitted_submissions"]:
                 submit_msg = "(Submittable)"
             if ass["due_at"]:
                 dttime = datetime.strptime(
-                    ass["due_at"], "%Y-%m-%dT%H:%M:%SZ"
-                ) + timedelta(hours=8)
+                    ass["due_at"], "%Y-%m-%dT%H:%M:%SZ") + timedelta(hours=8)
                 tformat = self.g_tformat
                 if "timeformat" in self.other:
                     tformat = self.other["timeformat"]
                 dttime = self.time_format_control(dttime, tformat)
-                check_type = self.get_check_status(f"ass{ass['id']}")
+                check_type = self.get_check_status(ass['id'])
+                # "ass" returend from canvas, so 'id' instead of 'item_id'
                 self.output += self.dump_span(
                     check_type,
-                    f"ass{ass['id']}",
+                    ass['id'],
                     f"{ass['name']}, Due: <b>{dttime}{submit_msg}</b>",
                     ass["html_url"],
                 )
             else:
                 # No due date homework
-                check_type = self.get_check_status(f"ass{ass['id']}")
+                check_type = self.get_check_status(ass['id'])
                 self.output += self.dump_span(
                     check_type,
-                    f"ass{ass['id']}",
+                    ass['id'],
                     f"{ass['name']}{submit_msg}",
                     ass["html_url"],
                 )
@@ -313,10 +321,9 @@ class apilink:
             if maxnum == 0:
                 break
             maxnum -= 1
-            check_type = self.get_check_status(f"ann{an['id']}")
-            self.output += self.dump_span(
-                check_type, f"ann{an['id']}", an["title"], an["html_url"]
-            )
+            check_type = self.get_check_status(an['id'])
+            self.output += self.dump_span(check_type, an['id'], an["title"],
+                                          an["html_url"])
 
     def collect_discussion(self):
         self.cstate = "Discussion"
@@ -344,10 +351,9 @@ class apilink:
             if maxnum == 0:
                 break
             maxnum -= 1
-            check_type = self.get_check_status(f"dis{d['id']}")
-            self.output += self.dump_span(
-                check_type, f"dis{d['id']}", d["title"], d["html_url"]
-            )
+            check_type = self.get_check_status(d['id'])
+            self.output += self.dump_span(check_type, d['id'], d["title"],
+                                          d["html_url"])
 
     def print_out(self):
         if self.output:

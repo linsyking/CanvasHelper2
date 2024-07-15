@@ -7,17 +7,9 @@
 
 from pydantic import BaseModel, Field
 from typing import Union
-
 """
 Models
 """
-
-
-class Position(BaseModel):
-    left: int = Field(..., description="Left position")
-    top: int = Field(..., description="Top position")
-    width: int = Field(..., description="Width")
-    height: int = Field(..., description="Height")
 
 
 class Check(BaseModel):
@@ -27,12 +19,14 @@ class Check(BaseModel):
 class Course(BaseModel):
     id: int
     name: str
-    type: str
+    type: int
     maxshow: int = -1
     order: str = "normal"
     msg: str = ""
 
 
-class URL(BaseModel):
+class RequestForm(BaseModel):
+    username: str
+    password: str
     url: str
-    browser: Union[str, None] = None
+    bid: str

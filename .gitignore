@@ -1,7 +1,8 @@
 # Project Specific
 canvas/
-user_conf.json
-public/res
+!canvas/model.md
+!canvas/usersdb.sql
+public/res/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

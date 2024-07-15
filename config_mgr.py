@@ -1,70 +1,130 @@
-#!/usr/bin/env python3
-
+import sqlite3
 import json
-from os import path
-
-"""
-Configuration Manager
-
-Configuration is located in ./user_conf.json
-It will include:
-- Canvas configuration
-- Wallpaper configuration
-- All courses configuration
-"""
+from global_config import DATABASE
 
 
 class ConfigMGR:
-    configuration = {}
 
     def __init__(self):
-        if not path.exists("user_conf.json"):
-            # Create this configuration file
-            self.configuration = {
-                "version": 1,
-            }
-            self.write_conf()
-        else:
-            self.force_read()
-            if self.configuration["version"] != 1:
-                raise Exception("Error: Configuration file version mismatch!")
+        pass  # No action is needed in constructor for now
 
-    def write_conf(self):
-        """
-        Write configuration to the local file.
-        """
-        self.check_health()
-        with open("./user_conf.json", "w", encoding="utf-8", errors="ignore") as f:
-            json.dump(self.configuration, f, ensure_ascii=False, indent=4)
+    def get_conf(self, username):
+        # example = {
+        #     'username': 'test',
+        #     'semester_begin': '2024-06-01',
+        #     'url': 'https://canvas.com',
+        #     'bid': '',
+        #     'timeformat': 'relative',
+        #     'background_image': 'aaa.jpg',
+        #     'courses': [{
+        #         'course_id': 847,
+        #         'course_name': 'Physics',
+        #         'type': 0,
+        #         'maxshow': -1,
+        #         'order': 'reverse',
+        #         'msg': 'test1'
+        #     }],
+        #     'checks': []
+        # }
 
-    def get_conf(self):
-        return self.configuration
+        with sqlite3.connect(DATABASE) as conn:
+            cursor = conn.cursor()
+            cursor.execute(
+                '''
+                SELECT * FROM users WHERE username = ?
+                ''', (username, ))
+            user_row = cursor.fetchone()
+            if user_row:
+                # Convert the row to a dictionary
+                columns = [desc[0] for desc in cursor.description]
+                user_db = [dict(zip(columns, user_row))][0]
+                user_id = user_db['id']
 
-    def remove_key(self, key: str):
-        self.configuration.pop(key)
-        self.write_conf()
+                courses = self.get_courses(user_id, cursor)
+                courses_list = [
+                    dict(
+                        zip([
+                            'course_id', 'course_name', 'type', 'maxshow',
+                            'order', 'msg'
+                        ], course)) for course in courses
+                ]
 
-    def force_read(self):
-        """
-        Read configuration file.
-        """
-        with open("./user_conf.json", "r", encoding="utf-8", errors="ignore") as f:
-            self.configuration = json.load(f)
+                checks = self.get_checks(user_id, cursor)
+                checks_list = [
+                    dict(zip(['type', 'item_id'], check)) for check in checks
+                ]
 
-    def check_health(self):
-        if not self.configuration:
-            raise Exception("No configuration found")
+                user_conf = {
+                    "username": user_db['username'],
+                    "semester_begin": user_db['semester_begin'],
+                    "url": user_db['url'],
+                    "bid": user_db['bid'],
+                    "timeformat": user_db['timeformat'],
+                    "background_image": user_db['background_image'],
+                    "courses": courses_list,
+                    "checks": checks_list
+                }
+                return user_conf
+            else:
+                return {"version": 1}
 
-    def set_key_value(self, key, value):
-        self.configuration[key] = value
-        self.write_conf()
+    def remove_key(self, username, key):
+        self.set_key_value(username, key, None)
 
-    def update_conf(self, conf):
-        """
-        Update the whole configuration
-        """
-        self.configuration = conf
-        self.write_conf()
+    def set_key_value(self, username, key, value):
+        with sqlite3.connect(DATABASE) as conn:
+            cursor = conn.cursor()
 
-    def set_wallpaper_path(self, path):
-        self.configuration["wallpaper_path"] = path
+            # Get the user_id for the given username
+            cursor.execute("SELECT id FROM users WHERE username = ?",
+                           (username, ))
+            user_id = cursor.fetchone()[0]
+
+            if key == "courses":
+                for course in value:
+                    cursor.execute(
+                        """
+                            INSERT OR REPLACE INTO courses (
+                                user_id, course_id, course_name, type, maxshow, display_order, msg
+                            ) VALUES (?, ?, ?, ?, ?, ?, ?)
+                        """,
+                        (user_id, course['course_id'], course['course_name'],
+                         course['type'], course['maxshow'], course['order'],
+                         course['msg']))
+
+            elif key == "checks":
+                for check in value:
+                    cursor.execute(
+                        """
+                            INSERT OR REPLACE INTO checks (
+                                user_id, type, item_id
+                            ) VALUES (?, ?, ?)
+                        """, (user_id, check['type'], check['item_id']))
+
+            elif key in [
+                    "title", "semester_begin", "url", "bid", "timeformat",
+                    "background_image"
+            ]:
+                for user_conf in value:
+                    cursor.execute(
+                        f"UPDATE users SET {key} = ? WHERE username = ?",
+                        (user_conf, username))
+
+            else:
+                raise Exception("Invalid key")
+
+            conn.commit()
+
+    def get_checks(self, user_id, cursor):
+        cursor.execute(
+            '''
+            SELECT type, item_id, type FROM checks WHERE user_id = ?
+            ''', (user_id, ))
+        return cursor.fetchall()
+
+    def get_courses(self, user_id, cursor):
+        cursor.execute(
+            '''
+            SELECT course_id, course_name, type, maxshow, display_order, msg FROM courses WHERE user_id = ?
+            ''', (user_id, ))
+        return cursor.fetchall()

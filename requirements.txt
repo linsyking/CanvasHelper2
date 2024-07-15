@@ -1,5 +1,8 @@
 requests
 fastapi
 uvicorn
+python-jose
+bcrypt
+passlib
 python-multipart
 GitPython
